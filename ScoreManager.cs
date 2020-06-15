@@ -1,15 +1,14 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class ScoreManager : MonoBehaviour
 {
     internal int currMatches { get; private set; } = 0;
     internal int movesCounter = 0;
-    [SerializeField] private GameObject scoreText;
     private GameObject prevCard = null;
+    [SerializeField] private GameObject scoreText;
+    
 
-    // Update is called once per frame
     void Update()
     {
         scoreText.GetComponent<TextMesh>().text = $"Moves: {movesCounter}";
@@ -27,6 +26,8 @@ public class ScoreManager : MonoBehaviour
             CheckForMatch(card);
         }
     }
+
+    #region Private Functions
 
     private void CheckForMatch(GameObject currentCard)
     {
@@ -65,4 +66,6 @@ public class ScoreManager : MonoBehaviour
 
         prevCard = null;
     }
+
+    #endregion
 }

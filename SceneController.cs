@@ -1,10 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Globalization;
-using UnityEngine;
+﻿using UnityEngine;
 
-public class SceneManager : MonoBehaviour
+public class SceneController : MonoBehaviour
 {
+    #region Variables
     public const int gridCols = 4;
     public const int gridRows = 2;
     public const float offSetX = 4f;
@@ -15,8 +13,19 @@ public class SceneManager : MonoBehaviour
     private GameObject timeText;
     private ScoreManager scoreManager;
     private const int totalMatches = 4;
+    private string playerName;
+    [SerializeField] private GameObject congrats;
     [SerializeField] private MainCard originalCard;
     [SerializeField] private Sprite[] imgs;
+
+    #endregion
+
+    #region Init Functions
+
+    private void OnEnable()
+    {
+        playerName = PlayerPrefs.GetString("playerName");
+    }
 
     private void Awake()
     {
@@ -31,22 +40,12 @@ public class SceneManager : MonoBehaviour
 
     private void Update()
     {
-
-        timeText.GetComponent<TextMesh>().text = $"Time - {tMins}:{Mathf.RoundToInt(tSecs).ToString("D2")}";
-        // Debug.Log($"tMins: {tMins}, tMins Rounded: {Mathf.RoundToInt(tMins).ToString()}, time: {time}");
-
-        if (scoreManager.currMatches == totalMatches)
-        {
-            Debug.Log("Congratulations You Won!");
-        }
-        else
-        {
-            time += Time.deltaTime;
-            tSecs = time % 60;
-            tMins = (Mathf.RoundToInt(time) % 60 == 0) ? Mathf.RoundToInt(time) / 60 : tMins;
-        }
-
+        UpdateGameStatus();
     }
+
+    #endregion
+
+    #region Private Functions
 
     private int[] ShuffleArray(int[] array)
     {
@@ -96,6 +95,35 @@ public class SceneManager : MonoBehaviour
             }
         }
     }
-    
-    
+
+    private void UpdateGameStatus()
+    {
+        timeText.GetComponent<TextMesh>().text = $"{playerName} - {tMins}:{Mathf.RoundToInt(tSecs).ToString("D2")}";
+        // Debug.Log($"tMins: {tMins}, tMins Rounded: {Mathf.RoundToInt(tMins).ToString()}, time: {time}");
+
+        if (scoreManager.currMatches == totalMatches)
+        {
+            Debug.Log("Congratulations You Won!");
+            Congrats();
+        }
+        else
+        {
+            time += Time.deltaTime;
+            tSecs = time % 60;
+            tMins = (Mathf.RoundToInt(time) % 60 == 0) ? Mathf.RoundToInt(time) / 60 : tMins;
+        }
+    }
+
+    private void Congrats()
+    {
+        //code the deactivation of the cards
+
+        congrats.SetActive(true);
+
+        //implement code to save information into a file or playerPrefs
+
+    }
+
+    #endregion
+
 }

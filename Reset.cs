@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using UnityEngine.SceneManagement;
 using UnityEngine;
 
 public class Reset : MonoBehaviour
@@ -7,5 +6,6 @@ public class Reset : MonoBehaviour
     private void OnMouseDown()
     {
         Debug.Log("Restarting game");//Implement code to load the first scene
+        SceneManager.LoadScene(0);
     }
 }

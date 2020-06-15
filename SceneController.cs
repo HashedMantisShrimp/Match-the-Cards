@@ -1,10 +1,11 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 public class SceneController : MonoBehaviour
 {
     #region Variables
     public const int gridCols = 4;
-    public const int gridRows = 2;
+    public const int gridRows = 3;
     public const float offSetX = 4f;
     public const float offSetY = 5f;
     internal float time = 0;
@@ -14,6 +15,7 @@ public class SceneController : MonoBehaviour
     private ScoreManager scoreManager;
     private const int totalMatches = 4;
     private string playerName;
+    [SerializeField] private GameObject scoreText;
     [SerializeField] private GameObject congrats;
     [SerializeField] private MainCard originalCard;
     [SerializeField] private Sprite[] imgs;
@@ -65,7 +67,7 @@ public class SceneController : MonoBehaviour
     private void OrganizeGameBoard()
     {
         Vector3 startPos = originalCard.transform.position;
-        int[] numbers = { 0, 0, 1, 1, 2, 2, 3, 3 };
+        int[] numbers = { 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3 };
         numbers = ShuffleArray(numbers);
 
         for (int i = 0; i < gridCols; i++)
@@ -99,12 +101,11 @@ public class SceneController : MonoBehaviour
     private void UpdateGameStatus()
     {
         timeText.GetComponent<TextMesh>().text = $"{playerName} - {tMins}:{Mathf.RoundToInt(tSecs).ToString("D2")}";
-        // Debug.Log($"tMins: {tMins}, tMins Rounded: {Mathf.RoundToInt(tMins).ToString()}, time: {time}");
 
         if (scoreManager.currMatches == totalMatches)
         {
-            Debug.Log("Congratulations You Won!");
-            Congrats();
+            Debug.Log($"Congratulations You Won! Time: {time}");
+            StartCoroutine(Congrats());
         }
         else
         {
@@ -114,14 +115,34 @@ public class SceneController : MonoBehaviour
         }
     }
 
-    private void Congrats()
+    private IEnumerator Congrats()
     {
-        //code the deactivation of the cards
-
+        SendData();
+        yield return new WaitForSeconds(0.3f);
+        scoreManager.CalculateScore();
+        scoreText.GetComponent<TextMesh>().text = $"Score: {scoreManager.score}";
+        StartCoroutine(DeactivateCards(1f));
         congrats.SetActive(true);
+        
 
+        
         //implement code to save information into a file or playerPrefs
+    }
 
+    private IEnumerator DeactivateCards(float waitTime)
+    {
+        MainCard[] cardArray = FindObjectsOfType<MainCard>();
+
+        yield return new WaitForSeconds(waitTime);
+        foreach (MainCard card in cardArray )
+        {
+            card.GetComponent<Transform>().gameObject.SetActive(false);
+        }
+    }
+
+    private void SendData()
+    {
+        scoreManager.time = time;
     }
 
     #endregion

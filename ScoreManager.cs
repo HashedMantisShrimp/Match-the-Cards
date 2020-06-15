@@ -1,25 +1,43 @@
 ﻿using System.Collections;
+using System;
 using UnityEngine;
 
 public class ScoreManager : MonoBehaviour
 {
-    internal int currMatches { get; private set; } = 0;
-    internal int movesCounter = 0;
-    private GameObject prevCard = null;
-    [SerializeField] private GameObject scoreText;
-    
+    internal int currMatches { get; private set; }
+    internal int score { get; private set; }
+    internal int movesCounter;
+    internal float time;
+    private GameObject prevCard1;
+    private GameObject prevCard2;
+    [SerializeField] private GameObject movesText;
+
+    void Start()
+    {
+        prevCard1 = null;
+        prevCard2 = null;
+        time = -1;
+        movesCounter = 0;
+        currMatches = 0;
+    }
 
     void Update()
     {
-        scoreText.GetComponent<TextMesh>().text = $"Moves: {movesCounter}";
+        movesText.GetComponent<TextMesh>().text = $"Moves: {movesCounter}";
     }
 
     internal void ManageRevealedCards(GameObject card)
     {
-        if (prevCard == null)
+        if (prevCard1 == null)
         {
-            prevCard = card;
-            prevCard.GetComponent<BoxCollider2D>().enabled = false;
+            prevCard1 = card;
+            prevCard1.GetComponent<BoxCollider2D>().enabled = false;
+        }
+        else if (prevCard2 == null)
+        {
+            prevCard2 = card;
+            prevCard2.GetComponent<BoxCollider2D>().enabled = false;
+
         }
         else
         {
@@ -27,30 +45,53 @@ public class ScoreManager : MonoBehaviour
         }
     }
 
+    internal void CalculateScore()
+    {
+        if (time != -1)
+        {
+            int secs = Mathf.RoundToInt(Mathf.RoundToInt(time));
+            score = (movesCounter * 5) + secs;
+
+            Debug.Log($"Seconds: {secs}");
+            return;
+        }
+
+        Debug.Log("<color=red>Time has not been updated</color>. returning -1.");
+        score = -1;
+    }
+
     #region Private Functions
 
-    private void CheckForMatch(GameObject currentCard)
+    private void CheckForMatch (GameObject currentCard)
     {
-        string prevCardName = prevCard.GetComponent<SpriteRenderer>().sprite.name;
+        string prevCardName1 = prevCard1.GetComponent<SpriteRenderer>().sprite.name;
+        string prevCardName2 = prevCard2.GetComponent<SpriteRenderer>().sprite.name;
         string currCardName = currentCard.GetComponent<SpriteRenderer>().sprite.name;
-        int prevCardID = prevCard.GetInstanceID();
+
+        int prevCardID1 = prevCard1.GetInstanceID();
+        int prevCardID2 = prevCard2.GetInstanceID();
         int currCardID = currentCard.GetInstanceID();
 
-        if (currCardName == prevCardName && currCardID != prevCardID)
+        if (currCardName.Equals(prevCardName1, StringComparison.OrdinalIgnoreCase) && currCardName.Equals(prevCardName2, StringComparison.OrdinalIgnoreCase)
+            && (currCardID != prevCardID1) && (currCardID != prevCardID2) && (prevCardID1 != prevCardID2))
         {
-            prevCard.GetComponent<MainCard>().enabled = false;
-            prevCard.GetComponent<BoxCollider2D>().enabled = false;
+            prevCard1.GetComponent<MainCard>().enabled = false;
+            prevCard1.GetComponent<BoxCollider2D>().enabled = false;
+
+            prevCard2.GetComponent<MainCard>().enabled = false;
+            prevCard2.GetComponent<BoxCollider2D>().enabled = false;
+
             currentCard.GetComponent<MainCard>().enabled = false;
             currentCard.GetComponent<BoxCollider2D>().enabled = false;
 
             currMatches++;
             Debug.Log($"Number of Matches: {currMatches}");
-            prevCard = null;
+            prevCard1 = null;
+            prevCard2 = null;
         }
         else
         {
             StartCoroutine(UnrevealCards(0.5f, currentCard));
-            
         }
 
         movesCounter++;
@@ -60,12 +101,16 @@ public class ScoreManager : MonoBehaviour
     { //Unreveals cards
 
         yield return new WaitForSeconds(waitTime);
-        prevCard.GetComponent<BoxCollider2D>().enabled = true;
-        prevCard.GetComponent<MainCard>().Unreveal();
+        prevCard1.GetComponent<BoxCollider2D>().enabled = true;
+        prevCard1.GetComponent<MainCard>().Unreveal();
+
+        prevCard2.GetComponent<BoxCollider2D>().enabled = true;
+        prevCard2.GetComponent<MainCard>().Unreveal();
+
         currCard.GetComponent<MainCard>().Unreveal();
 
-        prevCard = null;
+        prevCard1 = null;
+        prevCard2 = null;
     }
-
     #endregion
 }

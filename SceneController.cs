@@ -15,6 +15,7 @@ public class SceneController : MonoBehaviour
     private ScoreManager scoreManager;
     private const int totalMatches = 4;
     private string playerName;
+    [SerializeField] private GameObject gameArea;
     [SerializeField] private GameObject scoreText;
     [SerializeField] private GameObject congrats;
     [SerializeField] private MainCard originalCard;
@@ -27,6 +28,9 @@ public class SceneController : MonoBehaviour
     private void OnEnable()
     {
         playerName = PlayerPrefs.GetString("playerName");
+        playerName = (string.IsNullOrEmpty(playerName) || string.IsNullOrWhiteSpace(playerName)) ? "John Doe" : playerName;
+
+
     }
 
     private void Awake()
@@ -82,7 +86,7 @@ public class SceneController : MonoBehaviour
                 }
                 else
                 {
-                    card = Instantiate(originalCard) as MainCard;
+                    card = Instantiate(originalCard, gameArea.transform) as MainCard;
                 }
 
                 int index = j * gridCols + i;

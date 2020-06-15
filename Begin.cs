@@ -16,11 +16,24 @@ public class Begin : MonoBehaviour
         shake = FindObjectOfType<CameraShake>();
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Return))
+        {
+            CheckInput();
+        }
+    }
+
     #region Private Functions
 
     private void OnMouseDown()
     {
-        if ( !string.IsNullOrEmpty(playerName.text) && !string.IsNullOrWhiteSpace(playerName.text))
+        CheckInput();
+    }
+
+    private void CheckInput()
+    {
+        if (!string.IsNullOrEmpty(playerName.text) && !string.IsNullOrWhiteSpace(playerName.text))
         {
             SceneManager.LoadScene(1);
         }
@@ -30,7 +43,6 @@ public class Begin : MonoBehaviour
             errorMessage.SetActive(true);
             StartCoroutine(DeactivateMsg(4f, errorMessage));
         }
-        
     }
 
     private void OnDisable()

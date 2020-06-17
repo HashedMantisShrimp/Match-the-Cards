@@ -9,6 +9,7 @@ public class LeaderBoard : MonoBehaviour
     private TextMesh scoreObject;
     private TextMesh timeObject;
 
+    internal string key { get; private set; } = "LeaderBoard";
     private string playerName;
     private int score;
     private string time;
@@ -41,46 +42,58 @@ public class LeaderBoard : MonoBehaviour
         score = _score;
         time = _time;
         CreateNewPlayer(leaderBoardPlayers.Count);
-        //CalculatePosition();
+        SortPositions();
         AlignLeaderBoardItems();
         SaveInfo();
     }
 
-    private void CalculatePosition()
+    internal void ResetLists()
     {
-        if (score != -1 && !string.IsNullOrEmpty(playerName) && !string.IsNullOrEmpty(time))
+        foreach (GameObject player in leaderBoardObject)
         {
-            if (leaderBoardPlayers.Count > 0)
-            {
-                if (leaderBoardPlayers.ContainsKey(playerName))
-                {
+            player.SetActive(false);
+            Destroy(player);
+        }
+        leaderBoardPlayers.Clear();
+        leaderBoardObject.Clear();
+    }
 
-                    foreach (PlayerInfo player in leaderBoardPlayers.Values)
+    private void SortPositions()
+    {
+      //  Debug.Log($"score: {score}, playerName: {playerName}, time: {time}");
+        if (leaderBoardObject.Count > 0)
+        {
+            int listCount = leaderBoardObject.Count;
+            GameObject player1;
+            int score1;
+            string name1;
+            GameObject player2;
+            int score2;
+            string name2;
+                
+            for (int i=0; i < listCount; i++)
+            {
+                player1 = leaderBoardObject[i];
+                name1 = player1.transform.Find("PName").GetComponent<TextMesh>().text;
+
+                PlayerInfo pInfo = leaderBoardPlayers[name1];
+                score1 = pInfo._score;
+
+                for (int j = i+1; j < listCount; j++)
+                {
+                    player2 = leaderBoardObject[j];
+                    name2 = player2.transform.Find("PName").GetComponent<TextMesh>().text;
+
+                    PlayerInfo pInfo2 = leaderBoardPlayers[name2];
+                    score2 = pInfo2._score;
+
+                    if (score2<score1)
                     {
-                        if (score < player._score)
-                        {
-                            CreateNewPlayer(player._pos);
-                            player._pos++; // keep this up tomorrow
-                        }
-                        else
-                        {
-                            CreateNewPlayer(player._pos++);
-                        }
+                        leaderBoardObject[i] = player2;
+                        leaderBoardObject[j] = player1;
                     }
                 }
-                else
-                {
-                    //update the score if it is better
-                }
             }
-            else
-            {
-                CreateNewPlayer(0);
-            }
-        }
-        else
-        {
-            Debug.Log("<color=red>One of the variables is null</color>");
         }
     }
 
@@ -92,7 +105,6 @@ public class LeaderBoard : MonoBehaviour
             GameObject newPlayer = Instantiate(leaderBoardItem);
             PlayerInfo playerScript = new PlayerInfo
             {
-                _pos = ID + 1,
                 _pName = playerName,
                 _score = score,
                 _time = time
@@ -100,11 +112,21 @@ public class LeaderBoard : MonoBehaviour
 
             AssignValues(newPlayer, playerScript);
             newPlayer.SetActive(false);
-            
+
             leaderBoardObject.Add(newPlayer);
             leaderBoardPlayers.Add(playerName, playerScript);
         }
-        Debug.Log("Player is already in database.");
+        else
+        {
+            if (leaderBoardPlayers[playerName]._score > score)
+            {
+                leaderBoardPlayers[playerName]._score = score;
+                leaderBoardPlayers[playerName]._time = time;
+            }
+                
+            
+        }
+        
     }
 
     private void CreateNewPlayer(List<PlayerInfo> playerScripts)
@@ -123,20 +145,22 @@ public class LeaderBoard : MonoBehaviour
     {
         Vector3 templatePosition = leaderBoardItem.transform.position;
 
-        if (leaderBoardObject.Count > 10)
+        if (leaderBoardObject.Count > 5)
         {
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 5; i++)
             {
                 if (i != 0)
                 {
                     leaderBoardObject[i].transform.position = new Vector3(templatePosition.x, templatePosition.y - 2.61f * i, templatePosition.z);
                 }
-
+                string name = leaderBoardObject[i].transform.Find("PName").GetComponent<TextMesh>().text;
+                AssignValues(leaderBoardObject[i], leaderBoardPlayers[name]);
+                leaderBoardObject[i].transform.Find("Pos").GetComponent<TextMesh>().text = (i + 1).ToString();
                 leaderBoardObject[i].SetActive(true);
             }
         }
-        else if (leaderBoardObject.Count>0 && leaderBoardObject.Count<10)
+        else if (leaderBoardObject.Count>0 && leaderBoardObject.Count<5)
         {
             for (int i = 0; i < leaderBoardObject.Count; i++)
             {
@@ -144,7 +168,9 @@ public class LeaderBoard : MonoBehaviour
                 {
                     leaderBoardObject[i].transform.position = new Vector3(templatePosition.x, templatePosition.y - 2.61f * i, templatePosition.z);
                 }
-
+                string name = leaderBoardObject[i].transform.Find("PName").GetComponent<TextMesh>().text;
+                AssignValues(leaderBoardObject[i], leaderBoardPlayers[name]);
+                leaderBoardObject[i].transform.Find("Pos").GetComponent<TextMesh>().text = (i+1).ToString();
                 leaderBoardObject[i].SetActive(true);
             }
         }
@@ -152,12 +178,10 @@ public class LeaderBoard : MonoBehaviour
     
     private void AssignValues(GameObject item, PlayerInfo data)
     {
-        positionObject = item.transform.Find("Pos").GetComponent<TextMesh>();
         pNameObject = item.transform.Find("PName").GetComponent<TextMesh>();
         scoreObject = item.transform.Find("Score").GetComponent<TextMesh>();
         timeObject = item.transform.Find("Time").GetComponent<TextMesh>();
-
-        positionObject.text = data._pos.ToString();
+        
         pNameObject.text = data._pName;
         scoreObject.text = data._score.ToString();
         timeObject.text = data._time;
@@ -173,21 +197,21 @@ public class LeaderBoard : MonoBehaviour
 
         ListOfPlayers playerList = new ListOfPlayers { leaderBList = playerScripts };
         string jsonData = JsonUtility.ToJson(playerList); //keep on from here
-        PlayerPrefs.SetString("LeaderBoard", jsonData);
+        PlayerPrefs.SetString(key, jsonData);
         PlayerPrefs.Save();
-        Debug.Log($"Saved the json data as: {PlayerPrefs.GetString("LeaderBoard")}, jsonData: {jsonData}");
+        Debug.Log($"Saved the json data as: {PlayerPrefs.GetString(key)}, jsonData: {jsonData}");
     }
 
     private void LoadSavedData()
     {
         if (leaderBoardObject.Count == 0)
         {
-            string jsonData = PlayerPrefs.GetString("LeaderBoard");
+            string jsonData = PlayerPrefs.GetString(key);
             if (!string.IsNullOrEmpty(jsonData) && !string.IsNullOrWhiteSpace(jsonData))
             {
                 ListOfPlayers savedData = JsonUtility.FromJson<ListOfPlayers>(jsonData);
                 CreateNewPlayer(savedData.leaderBList);
-
+                SortPositions();
                 AlignLeaderBoardItems();
                 Debug.Log($"Json data: {jsonData}");
                 Debug.Log("align LeaderBoard Items called");
@@ -198,7 +222,6 @@ public class LeaderBoard : MonoBehaviour
     [System.Serializable]
     private class PlayerInfo
     {
-        public int _pos;
         public string _pName;
         public int _score;
         public string _time;

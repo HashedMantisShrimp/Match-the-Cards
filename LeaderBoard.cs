@@ -12,7 +12,7 @@ public class LeaderBoard : MonoBehaviour
     private string playerName;
     private int score;
     private string time;
-    private Dictionary<string, LItem> leaderBoardPlayers = new Dictionary<string, LItem>();
+    private Dictionary<string, PlayerInfo> leaderBoardPlayers = new Dictionary<string, PlayerInfo>();
     private List<GameObject> leaderBoardObject = new List<GameObject>();
     [SerializeField] private GameObject leaderBoardItem;
 
@@ -20,7 +20,7 @@ public class LeaderBoard : MonoBehaviour
 
     private void Awake()
     {
-        //LoadSavedData();
+        LoadSavedData();
     }
 
     void Start()
@@ -55,7 +55,7 @@ public class LeaderBoard : MonoBehaviour
                 if (leaderBoardPlayers.ContainsKey(playerName))
                 {
 
-                    foreach (LItem player in leaderBoardPlayers.Values)
+                    foreach (PlayerInfo player in leaderBoardPlayers.Values)
                     {
                         if (score < player._score)
                         {
@@ -84,9 +84,44 @@ public class LeaderBoard : MonoBehaviour
         }
     }
 
+
+    private void CreateNewPlayer(int ID)
+    {
+        if (!leaderBoardPlayers.ContainsKey(playerName))
+        {
+            GameObject newPlayer = Instantiate(leaderBoardItem);
+            PlayerInfo playerScript = new PlayerInfo
+            {
+                _pos = ID + 1,
+                _pName = playerName,
+                _score = score,
+                _time = time
+            };
+
+            AssignValues(newPlayer, playerScript);
+            newPlayer.SetActive(false);
+            
+            leaderBoardObject.Add(newPlayer);
+            leaderBoardPlayers.Add(playerName, playerScript);
+        }
+        Debug.Log("Player is already in database.");
+    }
+
+    private void CreateNewPlayer(List<PlayerInfo> playerScripts)
+    {
+        foreach (PlayerInfo pScript in playerScripts)
+        {
+            GameObject player = Instantiate(leaderBoardItem);
+            AssignValues(player, pScript);
+            player.SetActive(false);
+            leaderBoardObject.Add(player);
+            leaderBoardPlayers.Add(pScript._pName, pScript);
+        }
+    }
+
     private void AlignLeaderBoardItems()
     {
-        Vector2 templatePosition = leaderBoardItem.transform.position;
+        Vector3 templatePosition = leaderBoardItem.transform.position;
 
         if (leaderBoardObject.Count > 10)
         {
@@ -95,7 +130,7 @@ public class LeaderBoard : MonoBehaviour
             {
                 if (i != 0)
                 {
-                    leaderBoardObject[i].transform.position = new Vector2(templatePosition.x, templatePosition.y - 1.57f * i);
+                    leaderBoardObject[i].transform.position = new Vector3(templatePosition.x, templatePosition.y - 2.61f * i, templatePosition.z);
                 }
 
                 leaderBoardObject[i].SetActive(true);
@@ -107,33 +142,37 @@ public class LeaderBoard : MonoBehaviour
             {
                 if (i != 0)
                 {
-                    leaderBoardObject[i].transform.position = new Vector2(templatePosition.x, templatePosition.y - 1.57f * i);
+                    leaderBoardObject[i].transform.position = new Vector3(templatePosition.x, templatePosition.y - 2.61f * i, templatePosition.z);
                 }
 
                 leaderBoardObject[i].SetActive(true);
             }
         }
     }
-
-    private void CreateNewPlayer(int ID)
+    
+    private void AssignValues(GameObject item, PlayerInfo data)
     {
-        if (!leaderBoardPlayers.ContainsKey(playerName))
-        {
-            GameObject newPlayer = Instantiate(leaderBoardItem);
-            newPlayer.TryGetComponent(out LItem script);
-            newPlayer.SetActive(false);
+        positionObject = item.transform.Find("Pos").GetComponent<TextMesh>();
+        pNameObject = item.transform.Find("PName").GetComponent<TextMesh>();
+        scoreObject = item.transform.Find("Score").GetComponent<TextMesh>();
+        timeObject = item.transform.Find("Time").GetComponent<TextMesh>();
 
-            script.InitData(ID + 1, playerName, score, time);
-            leaderBoardObject.Add(newPlayer);
-            leaderBoardPlayers.Add(playerName, script);
-        }
-        Debug.Log("Player is already in database.");
+        positionObject.text = data._pos.ToString();
+        pNameObject.text = data._pName;
+        scoreObject.text = data._score.ToString();
+        timeObject.text = data._time;
     }
-
+    
     private void SaveInfo()
     {
-        ListOfPlayers playerList = new ListOfPlayers { leaderBList = leaderBoardPlayers };
-        string jsonData = JsonUtility.ToJson(playerList);
+        List<PlayerInfo> playerScripts = new List<PlayerInfo>();
+        foreach (PlayerInfo item in leaderBoardPlayers.Values)
+        {
+            playerScripts.Add(item);
+        }
+
+        ListOfPlayers playerList = new ListOfPlayers { leaderBList = playerScripts };
+        string jsonData = JsonUtility.ToJson(playerList); //keep on from here
         PlayerPrefs.SetString("LeaderBoard", jsonData);
         PlayerPrefs.Save();
         Debug.Log($"Saved the json data as: {PlayerPrefs.GetString("LeaderBoard")}, jsonData: {jsonData}");
@@ -146,16 +185,31 @@ public class LeaderBoard : MonoBehaviour
             string jsonData = PlayerPrefs.GetString("LeaderBoard");
             if (!string.IsNullOrEmpty(jsonData) && !string.IsNullOrWhiteSpace(jsonData))
             {
-                leaderBoardObject = JsonUtility.FromJson<List<GameObject>>(jsonData);
+                ListOfPlayers savedData = JsonUtility.FromJson<ListOfPlayers>(jsonData);
+                CreateNewPlayer(savedData.leaderBList);
+
                 AlignLeaderBoardItems();
                 Debug.Log($"Json data: {jsonData}");
                 Debug.Log("align LeaderBoard Items called");
             }
         }
     }
+
+    [System.Serializable]
+    private class PlayerInfo
+    {
+        public int _pos;
+        public string _pName;
+        public int _score;
+        public string _time;
+    }
+
+    private class ListOfPlayers
+    {
+        public List<PlayerInfo> leaderBList;
+    }
 }
 
-public class ListOfPlayers
-{
-    internal Dictionary<string, LItem> leaderBList;
-}
+
+
+

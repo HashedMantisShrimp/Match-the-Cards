@@ -11,7 +11,7 @@ public class ResetLeaderBoard : MonoBehaviour
         script = FindObjectOfType<LeaderBoard>();
     }
 
-    private void OnMouseDown()
+    private void OnMouseDown() //If clicked, resets the leaderboard list
     {
         PlayerPrefs.DeleteKey(script.key);
         script.ResetLists();

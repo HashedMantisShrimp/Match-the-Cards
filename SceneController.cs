@@ -4,6 +4,7 @@ using UnityEngine;
 public class SceneController : MonoBehaviour
 {
     #region Variables
+
     public bool winGame = false;
     public const int gridCols = 4;
     public const int gridRows = 3;
@@ -12,13 +13,17 @@ public class SceneController : MonoBehaviour
     internal float time = 0;
     internal int tMins = 00;
     internal float tSecs = 00;
-    private GameObject timeText;
-    private ScoreManager scoreManager;
-    private LeaderBoard leaderBoard;
     private const int totalMatches = 4;
     private string playerName;
     private int score =-1;
     private bool gameOver = false;
+    private GameObject timeText;
+    private GameObject leaderBoardButton;
+    private GameObject resetLeaderBoard;
+    private ScoreManager scoreManager;
+    private LeaderBoard leaderBoard;
+    private MainCard[] cardArray;
+    [SerializeField] private GameObject quitInterface;
     [SerializeField] private GameObject gameArea;
     [SerializeField] private GameObject scoreText;
     [SerializeField] private GameObject congrats;
@@ -37,28 +42,50 @@ public class SceneController : MonoBehaviour
 
     private void Awake()
     {
+        resetLeaderBoard = FindObjectOfType<ResetLeaderBoard>().gameObject;
         leaderBoard = FindObjectOfType<LeaderBoard>();
         timeText = transform.Find("Time Text").gameObject;
         scoreManager = FindObjectOfType<ScoreManager>();
+        leaderBoardButton = FindObjectOfType<ToggleButton>().gameObject;
     }
 
     void Start()
     {
         OrganizeGameBoard();
+        if (quitInterface != null)
+            quitInterface.SetActive(false);
     }
 
-    private void Update()
+    void Update()
     {
         UpdateGameStatus();
-        if (winGame)
-            scoreManager.SetMatches(totalMatches);
     }
 
     #endregion
 
+    internal void ToggleEscape() //Handles the 'paused-game' state
+    {
+        quitInterface.SetActive(!quitInterface.activeSelf);
+
+        if (quitInterface.activeSelf)
+        {
+            Time.timeScale = 0;
+            DeactivateCards(true);
+            leaderBoardButton.SetActive(false);
+            resetLeaderBoard.SetActive(false);
+        }
+        else
+        {
+            Time.timeScale = 1;
+            DeactivateCards(false);
+            leaderBoardButton.SetActive(true);
+            resetLeaderBoard.SetActive(true);
+        }
+    }
+
     #region Private Functions
 
-    private int[] ShuffleArray(int[] array)
+    private int[] ShuffleArray(int[] array) //shuffles an array
     {
         int[] newArray = array.Clone() as int[];
 
@@ -73,7 +100,7 @@ public class SceneController : MonoBehaviour
         return newArray;
     }
 
-    private void OrganizeGameBoard()
+    private void OrganizeGameBoard() //Shuffles the position of card types and organizes them
     {
         Vector3 startPos = originalCard.transform.position;
         int[] numbers = { 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3 };
@@ -107,10 +134,15 @@ public class SceneController : MonoBehaviour
         }
     }
 
-    private void UpdateGameStatus()
+    private void UpdateGameStatus() //Checks & handles the 'state' of the game
     {
+        CheckPauseStatus();
+
         if (!gameOver)
         {
+            if (winGame)
+                scoreManager.SetMatches(totalMatches);
+
             timeText.GetComponent<TextMesh>().text = $"{playerName} - {tMins}:{Mathf.RoundToInt(tSecs).ToString("D2")}";
 
             if (scoreManager.currMatches == totalMatches)
@@ -130,34 +162,58 @@ public class SceneController : MonoBehaviour
         
     }
 
-    private IEnumerator Congrats()
+    private IEnumerator Congrats() //Handles the Win-state
     {
         SendData();
         yield return new WaitForSeconds(0.3f);
         scoreManager.CalculateScore();
         score = scoreManager.score;
         scoreText.GetComponent<TextMesh>().text = $"Score: {score}";
-        leaderBoard.GetData(playerName, score, $"{tMins}:{Mathf.RoundToInt(tSecs).ToString("D2")}");
+        leaderBoard.SendData(playerName, score, $"{tMins}:{Mathf.RoundToInt(tSecs).ToString("D2")}");
         StartCoroutine(DeactivateCards(1f));
         congrats.SetActive(true);
     }
 
-    private IEnumerator DeactivateCards(float waitTime)
+    private IEnumerator DeactivateCards(float waitTime) //Deactivates cards after waitTime
     {
-        MainCard[] cardArray = FindObjectsOfType<MainCard>();
-
+        if (cardArray == null)
+        {
+            cardArray = FindObjectsOfType<MainCard>();
+        }
+        
         yield return new WaitForSeconds(waitTime);
+
         foreach (MainCard card in cardArray )
         {
             card.GetComponent<Transform>().gameObject.SetActive(false);
         }
     }
 
-    private void SendData()
+    private void DeactivateCards(bool deactivate) //Deactivates cards immediately
+    {
+        if (cardArray == null)
+        {
+            cardArray = FindObjectsOfType<MainCard>();
+        }
+
+        foreach (MainCard card in cardArray)
+        {
+            card.GetComponent<Transform>().gameObject.SetActive(!deactivate);
+        }
+    }
+
+    private void SendData() // Sends time to ScoreManager to calculate score
     {
         scoreManager.time = time;
     }
 
-    #endregion
+    private void CheckPauseStatus() //Checks the 'paused-game' state
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            ToggleEscape();
+        }
+    }
 
+    #endregion
 }

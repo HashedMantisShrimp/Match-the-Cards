@@ -5,10 +5,9 @@ using UnityEngine.SceneManagement;
 
 public class Begin : MonoBehaviour
 {
+    private CameraShake shake;
     [SerializeField] private Text playerName;
     [SerializeField] private GameObject errorMessage;
-    private CameraShake shake;
-    private Scene scene;
 
 
     void Start()
@@ -31,7 +30,7 @@ public class Begin : MonoBehaviour
         CheckInput();
     }
 
-    private void CheckInput()
+    private void CheckInput() //checks if player actually wrote something
     {
         if (!string.IsNullOrEmpty(playerName.text) && !string.IsNullOrWhiteSpace(playerName.text))
         {
@@ -50,7 +49,7 @@ public class Begin : MonoBehaviour
         PlayerPrefs.SetString("playerName", playerName.text);
     }
 
-    private IEnumerator DeactivateMsg(float waitTime, GameObject msg)
+    private IEnumerator DeactivateMsg(float waitTime, GameObject msg) //disables errorMessage after waitTime
     {
         yield return new WaitForSeconds(waitTime);
         msg.SetActive(false);

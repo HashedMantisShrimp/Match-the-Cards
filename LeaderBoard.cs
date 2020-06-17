@@ -1,9 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class LeaderBoard : MonoBehaviour
 {
+    #region Variables
     private TextMesh positionObject;
     private TextMesh pNameObject;
     private TextMesh scoreObject;
@@ -16,10 +16,9 @@ public class LeaderBoard : MonoBehaviour
     private Dictionary<string, PlayerInfo> leaderBoardPlayers = new Dictionary<string, PlayerInfo>();
     private List<GameObject> leaderBoardObject = new List<GameObject>();
     [SerializeField] private GameObject leaderBoardItem;
+    #endregion
 
-    // Start is called before the first frame update
-
-    private void Awake()
+    void Awake()
     {
         LoadSavedData();
     }
@@ -31,23 +30,20 @@ public class LeaderBoard : MonoBehaviour
         time = null;
     }
 
-    // Leaderboard will generate LItems on the UI and in their respective positions.
-    //Leaderboard will calculate the position of the next/current player.
-    //Leaderboard needs to access a file database with info on players.
-    
+    #region Internal Functions
 
-    internal void GetData(string _pName, int _score, string _time)
+    internal void SendData(string _pName, int _score, string _time) //Gets data to be assigned to current player
     {
         playerName = _pName;
         score = _score;
         time = _time;
-        CreateNewPlayer(leaderBoardPlayers.Count);
+        CreateNewPlayer();
         SortPositions();
         AlignLeaderBoardItems();
         SaveInfo();
     }
 
-    internal void ResetLists()
+    internal void ResetLists() //Resets LeaderBoard list
     {
         foreach (GameObject player in leaderBoardObject)
         {
@@ -57,10 +53,12 @@ public class LeaderBoard : MonoBehaviour
         leaderBoardPlayers.Clear();
         leaderBoardObject.Clear();
     }
+    #endregion
 
-    private void SortPositions()
+    #region Private Functions
+
+    private void SortPositions() //Sorts LeaderBoard items according to score (from lowest to highest)
     {
-      //  Debug.Log($"score: {score}, playerName: {playerName}, time: {time}");
         if (leaderBoardObject.Count > 0)
         {
             int listCount = leaderBoardObject.Count;
@@ -98,7 +96,7 @@ public class LeaderBoard : MonoBehaviour
     }
 
 
-    private void CreateNewPlayer(int ID)
+    private void CreateNewPlayer() //Creates player or updates player data
     {
         if (!leaderBoardPlayers.ContainsKey(playerName))
         {
@@ -123,13 +121,10 @@ public class LeaderBoard : MonoBehaviour
                 leaderBoardPlayers[playerName]._score = score;
                 leaderBoardPlayers[playerName]._time = time;
             }
-                
-            
         }
-        
     }
 
-    private void CreateNewPlayer(List<PlayerInfo> playerScripts)
+    private void CreateNewPlayer(List<PlayerInfo> playerScripts) //Creates players from a loaded list
     {
         foreach (PlayerInfo pScript in playerScripts)
         {
@@ -141,7 +136,7 @@ public class LeaderBoard : MonoBehaviour
         }
     }
 
-    private void AlignLeaderBoardItems()
+    private void AlignLeaderBoardItems() //assigns the physical position of LeaderBoard players
     {
         Vector3 templatePosition = leaderBoardItem.transform.position;
 
@@ -176,7 +171,7 @@ public class LeaderBoard : MonoBehaviour
         }
     }
     
-    private void AssignValues(GameObject item, PlayerInfo data)
+    private void AssignValues(GameObject item, PlayerInfo data) //Assigns data to LeaderBoard gameObject
     {
         pNameObject = item.transform.Find("PName").GetComponent<TextMesh>();
         scoreObject = item.transform.Find("Score").GetComponent<TextMesh>();
@@ -187,7 +182,7 @@ public class LeaderBoard : MonoBehaviour
         timeObject.text = data._time;
     }
     
-    private void SaveInfo()
+    private void SaveInfo() //Saves the current LeaderBoard players into a file
     {
         List<PlayerInfo> playerScripts = new List<PlayerInfo>();
         foreach (PlayerInfo item in leaderBoardPlayers.Values)
@@ -202,7 +197,7 @@ public class LeaderBoard : MonoBehaviour
         Debug.Log($"Saved the json data as: {PlayerPrefs.GetString(key)}, jsonData: {jsonData}");
     }
 
-    private void LoadSavedData()
+    private void LoadSavedData() //Loads the previous LeaderBoard players from a file
     {
         if (leaderBoardObject.Count == 0)
         {
@@ -218,6 +213,7 @@ public class LeaderBoard : MonoBehaviour
             }
         }
     }
+    #endregion
 
     [System.Serializable]
     private class PlayerInfo
@@ -232,7 +228,3 @@ public class LeaderBoard : MonoBehaviour
         public List<PlayerInfo> leaderBList;
     }
 }
-
-
-
-

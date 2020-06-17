@@ -2,10 +2,9 @@
 
 public class MainCard : MonoBehaviour
 {
+    internal int id { get; private set; }
     private GameObject cardBack;
     private ScoreManager scoreManager;
-    private int _id; //simplify this?
-    public int id { get { return id; } }
 
 
     void Start()
@@ -15,9 +14,10 @@ public class MainCard : MonoBehaviour
     }
 
     #region Internal Functions
-    internal void ChangeSprite(int id, Sprite img)
+
+    internal void ChangeSprite(int id, Sprite img) //Assigns a sprite (type of card) to a card
     {
-        _id = id;
+        this.id = id;
         GetComponent<SpriteRenderer>().sprite = img;
     }
 
@@ -25,13 +25,14 @@ public class MainCard : MonoBehaviour
     {
         cardBack.SetActive(true);
     }
+
     #endregion
 
-    private void OnMouseDown()
+    private void OnMouseDown() //reveals the type of card
     {
         if (cardBack.activeSelf)
             cardBack.SetActive(false);
-        scoreManager.ManageRevealedCards(gameObject);
+        scoreManager.ManageRevealedCards(gameObject); //calls function to check if revealed cards match
     }
     
 }

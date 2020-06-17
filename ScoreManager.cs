@@ -26,7 +26,7 @@ public class ScoreManager : MonoBehaviour
         movesText.GetComponent<TextMesh>().text = $"Moves: {movesCounter}";
     }
 
-    internal void ManageRevealedCards(GameObject card)
+    internal void ManageRevealedCards(GameObject card) //Manages the revealed cards
     {
         if (prevCard1 == null)
         {
@@ -37,7 +37,6 @@ public class ScoreManager : MonoBehaviour
         {
             prevCard2 = card;
             prevCard2.GetComponent<BoxCollider2D>().enabled = false;
-
         }
         else
         {
@@ -45,7 +44,7 @@ public class ScoreManager : MonoBehaviour
         }
     }
 
-    internal void CalculateScore()
+    internal void CalculateScore() //Calculates player score
     {
         if (time != -1)
         {
@@ -60,14 +59,14 @@ public class ScoreManager : MonoBehaviour
         score = -1;
     }
 
-    internal void SetMatches(int totalMatches)
+    internal void SetMatches(int totalMatches) //Checks if all matches have been found
     {
         currMatches = totalMatches;
     }
 
     #region Private Functions
 
-    private void CheckForMatch (GameObject currentCard)
+    private void CheckForMatch (GameObject currentCard) //Checks if revealed cards match
     {
         string prevCardName1 = prevCard1.GetComponent<SpriteRenderer>().sprite.name;
         string prevCardName2 = prevCard2.GetComponent<SpriteRenderer>().sprite.name;
@@ -102,8 +101,8 @@ public class ScoreManager : MonoBehaviour
         movesCounter++;
     }
 
-    private IEnumerator UnrevealCards(float waitTime, GameObject currCard)
-    { //Unreveals cards
+    private IEnumerator UnrevealCards(float waitTime, GameObject currCard) //Unreveals cards after waitTime, called when 3 cards have been revealed
+    { 
 
         yield return new WaitForSeconds(waitTime);
         prevCard1.GetComponent<BoxCollider2D>().enabled = true;

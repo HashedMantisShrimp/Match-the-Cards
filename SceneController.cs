@@ -4,6 +4,7 @@ using UnityEngine;
 public class SceneController : MonoBehaviour
 {
     #region Variables
+    public bool winGame = false;
     public const int gridCols = 4;
     public const int gridRows = 3;
     public const float offSetX = 4f;
@@ -13,8 +14,11 @@ public class SceneController : MonoBehaviour
     internal float tSecs = 00;
     private GameObject timeText;
     private ScoreManager scoreManager;
+    private LeaderBoard leaderBoard;
     private const int totalMatches = 4;
     private string playerName;
+    private int score =-1;
+    private bool gameOver = false;
     [SerializeField] private GameObject gameArea;
     [SerializeField] private GameObject scoreText;
     [SerializeField] private GameObject congrats;
@@ -29,12 +33,11 @@ public class SceneController : MonoBehaviour
     {
         playerName = PlayerPrefs.GetString("playerName");
         playerName = (string.IsNullOrEmpty(playerName) || string.IsNullOrWhiteSpace(playerName)) ? "John Doe" : playerName;
-
-
     }
 
     private void Awake()
     {
+        leaderBoard = FindObjectOfType<LeaderBoard>();
         timeText = transform.Find("Time Text").gameObject;
         scoreManager = FindObjectOfType<ScoreManager>();
     }
@@ -47,6 +50,8 @@ public class SceneController : MonoBehaviour
     private void Update()
     {
         UpdateGameStatus();
+        if (winGame)
+            scoreManager.SetMatches(totalMatches);
     }
 
     #endregion
@@ -104,19 +109,25 @@ public class SceneController : MonoBehaviour
 
     private void UpdateGameStatus()
     {
-        timeText.GetComponent<TextMesh>().text = $"{playerName} - {tMins}:{Mathf.RoundToInt(tSecs).ToString("D2")}";
+        if (!gameOver)
+        {
+            timeText.GetComponent<TextMesh>().text = $"{playerName} - {tMins}:{Mathf.RoundToInt(tSecs).ToString("D2")}";
 
-        if (scoreManager.currMatches == totalMatches)
-        {
-            Debug.Log($"Congratulations You Won! Time: {time}");
-            StartCoroutine(Congrats());
+            if (scoreManager.currMatches == totalMatches)
+            {
+                Debug.Log($"Congratulations You Won! Time: {time}");
+                StartCoroutine(Congrats());
+                gameOver = true;
+
+            }
+            else
+            {
+                time += Time.deltaTime;
+                tSecs = time % 60;
+                tMins = (Mathf.RoundToInt(time) % 60 == 0) ? Mathf.RoundToInt(time) / 60 : tMins;
+            }
         }
-        else
-        {
-            time += Time.deltaTime;
-            tSecs = time % 60;
-            tMins = (Mathf.RoundToInt(time) % 60 == 0) ? Mathf.RoundToInt(time) / 60 : tMins;
-        }
+        
     }
 
     private IEnumerator Congrats()
@@ -124,13 +135,11 @@ public class SceneController : MonoBehaviour
         SendData();
         yield return new WaitForSeconds(0.3f);
         scoreManager.CalculateScore();
-        scoreText.GetComponent<TextMesh>().text = $"Score: {scoreManager.score}";
+        score = scoreManager.score;
+        scoreText.GetComponent<TextMesh>().text = $"Score: {score}";
+        leaderBoard.GetData(playerName, score, $"{tMins}:{Mathf.RoundToInt(tSecs).ToString("D2")}");
         StartCoroutine(DeactivateCards(1f));
         congrats.SetActive(true);
-        
-
-        
-        //implement code to save information into a file or playerPrefs
     }
 
     private IEnumerator DeactivateCards(float waitTime)

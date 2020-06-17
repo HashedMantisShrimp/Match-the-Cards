@@ -52,12 +52,17 @@ public class ScoreManager : MonoBehaviour
             int secs = Mathf.RoundToInt(Mathf.RoundToInt(time));
             score = (movesCounter * 5) + secs;
 
-            Debug.Log($"Seconds: {secs}");
+            Debug.Log($"Seconds: {secs}, score: {score}");
             return;
         }
 
         Debug.Log("<color=red>Time has not been updated</color>. returning -1.");
         score = -1;
+    }
+
+    internal void SetMatches(int totalMatches)
+    {
+        currMatches = totalMatches;
     }
 
     #region Private Functions

@@ -1,35 +1,48 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine.UI;
-using UnityEngine;
+﻿using UnityEngine;
 
+[System.Serializable]
 public class LItem : MonoBehaviour
 {
-    private TextMesh pos;
-    private TextMesh pName;
-    private TextMesh score;
-    private TextMesh time;
+    [SerializeField] private TextMesh position;
+    [SerializeField] private TextMesh pName;
+    [SerializeField] private TextMesh score;
+    [SerializeField] private TextMesh time;
 
-    private void Awake()
+    internal int _pos { get; set; }
+    internal string _pName { get; private set; }
+    internal int _score { get; private set; }
+    internal string _time { get; private set; }
+
+    private void AssignValues()
     {
-        pos = transform.Find("Pos").GetComponent<TextMesh>();
+        position = transform.Find("Pos").GetComponent<TextMesh>();
         pName = transform.Find("PName").GetComponent<TextMesh>();
         score = transform.Find("Score").GetComponent<TextMesh>();
         time = transform.Find("Time").GetComponent<TextMesh>();
     }
 
-    // Start is called before the first frame update
-    void Start()
+    private void SetInitData()
     {
-        
-    }
-
-    internal void InitData(int _pos, string _pName, int _score, string _time)
-    {
-        pos.text = _pos.ToString();
+        AssignValues();
+        //SetPos();
         pName.text = _pName;
         score.text = _score.ToString();
         time.text = _time;
+    }
+
+    internal void InitData(int pos, string pName, int score, string time)
+    {
+        _pos = pos;
+        _pName = pName;
+        _score = score;
+        _time = time;
+
+        SetInitData();
+    }
+
+    private void SetPos()
+    {
+        position.text = _pos.ToString();
     }
 
 }

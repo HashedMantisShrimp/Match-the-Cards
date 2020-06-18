@@ -77,6 +77,7 @@ public class SceneController : MonoBehaviour
         else
         {
             Time.timeScale = 1;
+            if(!gameOver)
             DeactivateCards(false);
             leaderBoardButton.SetActive(true);
             resetLeaderBoard.SetActive(true);
@@ -140,6 +141,8 @@ public class SceneController : MonoBehaviour
 
         if (!gameOver)
         {
+            WinCheatCode();
+
             if (winGame)
                 scoreManager.SetMatches(totalMatches);
 
@@ -212,6 +215,14 @@ public class SceneController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             ToggleEscape();
+        }
+    }
+
+    private void WinCheatCode()
+    {
+        if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.W))
+        { 
+                winGame = true;
         }
     }
 

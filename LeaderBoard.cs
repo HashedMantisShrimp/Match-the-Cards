@@ -62,9 +62,11 @@ public class LeaderBoard : MonoBehaviour
         if (leaderBoardObject.Count > 0)
         {
             int listCount = leaderBoardObject.Count;
+
             GameObject player1;
             int score1;
             string name1;
+
             GameObject player2;
             int score2;
             string name2;
@@ -89,6 +91,8 @@ public class LeaderBoard : MonoBehaviour
                     {
                         leaderBoardObject[i] = player2;
                         leaderBoardObject[j] = player1;
+
+                        player1 = leaderBoardObject[i];
                     }
                 }
             }
@@ -140,36 +144,31 @@ public class LeaderBoard : MonoBehaviour
     {
         Vector3 templatePosition = leaderBoardItem.transform.position;
 
-        if (leaderBoardObject.Count > 5)
+        if (leaderBoardObject.Count > 0)
         {
+            int limit = (leaderBoardObject.Count >= 5) ? 5 : leaderBoardObject.Count;
 
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < limit; i++)
             {
-                if (i != 0)
-                {
-                    leaderBoardObject[i].transform.position = new Vector3(templatePosition.x, templatePosition.y - 2.61f * i, templatePosition.z);
-                }
+                leaderBoardObject[i].transform.position = new Vector3(templatePosition.x, templatePosition.y - 2.61f * i, templatePosition.z);
                 string name = leaderBoardObject[i].transform.Find("PName").GetComponent<TextMesh>().text;
                 AssignValues(leaderBoardObject[i], leaderBoardPlayers[name]);
                 leaderBoardObject[i].transform.Find("Pos").GetComponent<TextMesh>().text = (i + 1).ToString();
                 leaderBoardObject[i].SetActive(true);
             }
-        }
-        else if (leaderBoardObject.Count>0 && leaderBoardObject.Count<5)
-        {
-            for (int i = 0; i < leaderBoardObject.Count; i++)
+            if (leaderBoardObject.Count > 5)
             {
-                if (i != 0)
+                for (int i = 5; i < leaderBoardObject.Count; i++)
                 {
-                    leaderBoardObject[i].transform.position = new Vector3(templatePosition.x, templatePosition.y - 2.61f * i, templatePosition.z);
+                    string name = leaderBoardObject[i].transform.Find("PName").GetComponent<TextMesh>().text;
+                    leaderBoardObject[i].SetActive(false);
+                    leaderBoardPlayers.Remove(name);
+                    Debug.Log($"Deactivated leaderBoardObject{i}, {leaderBoardObject[i]}");
                 }
-                string name = leaderBoardObject[i].transform.Find("PName").GetComponent<TextMesh>().text;
-                AssignValues(leaderBoardObject[i], leaderBoardPlayers[name]);
-                leaderBoardObject[i].transform.Find("Pos").GetComponent<TextMesh>().text = (i+1).ToString();
-                leaderBoardObject[i].SetActive(true);
             }
         }
     }
+        
     
     private void AssignValues(GameObject item, PlayerInfo data) //Assigns data to LeaderBoard gameObject
     {

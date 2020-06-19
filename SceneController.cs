@@ -22,7 +22,11 @@ public class SceneController : MonoBehaviour
     private GameObject resetLeaderBoard;
     private ScoreManager scoreManager;
     private LeaderBoard leaderBoard;
+    private Data saveData;
+    private SaveGame saveGame;
+    private LoadGame loadGame;
     private MainCard[] cardArray;
+    [SerializeField] private GameObject SaveAndLoad;
     [SerializeField] private GameObject quitInterface;
     [SerializeField] private GameObject gameArea;
     [SerializeField] private GameObject scoreText;
@@ -42,16 +46,22 @@ public class SceneController : MonoBehaviour
 
     private void Awake()
     {
-        resetLeaderBoard = FindObjectOfType<ResetLeaderBoard>().gameObject;
-        leaderBoard = FindObjectOfType<LeaderBoard>();
-        timeText = transform.Find("Time Text").gameObject;
-        scoreManager = FindObjectOfType<ScoreManager>();
-        leaderBoardButton = FindObjectOfType<ToggleButton>().gameObject;
+        AssignFields();
     }
 
     void Start()
     {
-        OrganizeGameBoard();
+        loadGame = SaveAndLoad.GetComponent<LoadGame>();
+
+        if (loadGame.saveDataIsPresent)
+        {
+            OrganizeGameBoard(saveData.IDs);
+        }
+        else
+        {
+            OrganizeGameBoard();
+        }
+        
         if (quitInterface != null)
             quitInterface.SetActive(false);
     }
@@ -66,6 +76,26 @@ public class SceneController : MonoBehaviour
     internal void ToggleEscape() //Handles the 'paused-game' state
     {
         quitInterface.SetActive(!quitInterface.activeSelf);
+
+        if (!gameOver)
+        {
+            saveGame.AcquireData(playerName, time, scoreManager.movesCounter, scoreManager.currMatches);
+            saveGame.SaveData(playerName);
+        }
+        
+
+        if (cardArray != null)
+        {
+            for(int i=0; i<cardArray.Length; i++)
+            {
+                int id = cardArray[i].id;
+                bool isEnabled = cardArray[i].enabled;
+                bool isColliderOn = cardArray[i].gameObject.GetComponent<BoxCollider2D>().enabled;
+                bool cardBackEnabled = cardArray[i].GetCardBackState();
+
+                saveGame.AcquireData(id, isEnabled, isColliderOn, cardBackEnabled);
+            }
+        }
 
         if (quitInterface.activeSelf)
         {
@@ -86,6 +116,20 @@ public class SceneController : MonoBehaviour
 
     #region Private Functions
 
+    private void AssignFields()
+    {
+        resetLeaderBoard = FindObjectOfType<ResetLeaderBoard>().gameObject;
+        leaderBoard = FindObjectOfType<LeaderBoard>();
+        timeText = transform.Find("Time Text").gameObject;
+        scoreManager = FindObjectOfType<ScoreManager>();
+        leaderBoardButton = FindObjectOfType<ToggleButton>().gameObject;
+
+        if(SaveAndLoad==null)
+        SaveAndLoad = FindObjectOfType<SaveGame>().gameObject;
+
+        saveGame = SaveAndLoad.GetComponent<SaveGame>();
+    }
+
     private int[] ShuffleArray(int[] array) //shuffles an array
     {
         int[] newArray = array.Clone() as int[];
@@ -105,7 +149,9 @@ public class SceneController : MonoBehaviour
     {
         Vector3 startPos = originalCard.transform.position;
         int[] numbers = { 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3 };
+        int counter=0;
         numbers = ShuffleArray(numbers);
+        saveGame.AcquireData(numbers);
 
         for (int i = 0; i < gridCols; i++)
         {
@@ -126,6 +172,54 @@ public class SceneController : MonoBehaviour
                 int id = numbers[index];
 
                 card.ChangeSprite(id, imgs[id]);
+                saveGame.AcquireData(counter);
+                counter++;
+
+                float posX = (offSetX * i) + startPos.x;
+                float posY = (offSetY * j) + startPos.y;
+
+                card.transform.position = new Vector3(posX, posY, startPos.z);
+            }
+        }
+    }
+
+    private void OrganizeGameBoard(int[] idArray)
+    {
+        Vector3 startPos = originalCard.transform.position;
+        time = saveData.time;
+        int counter = 0;
+
+        for (int i = 0; i < gridCols; i++)
+        {
+            for (int j = 0; j < gridRows; j++)
+            {
+                MainCard card;
+                CardInfo newCardInfo;
+
+                if (i == 0 && j == 0)
+                {
+                    card = originalCard;
+                }
+                else
+                {
+                    card = Instantiate(originalCard, gameArea.transform) as MainCard;
+                }
+
+                int index = j * gridCols + i;
+                int id = idArray[index];
+                newCardInfo = saveData.cards[counter];
+                counter++;
+
+                card.ChangeSprite(id, imgs[id]);
+                card.enabled = newCardInfo.scriptEnabled;
+
+                if (!newCardInfo.cardBackEnabled)
+                {
+                    card.Unreveal();
+                    scoreManager.SetPrevCards(card.gameObject);
+                }
+                    
+                
 
                 float posX = (offSetX * i) + startPos.x;
                 float posY = (offSetY * j) + startPos.y;

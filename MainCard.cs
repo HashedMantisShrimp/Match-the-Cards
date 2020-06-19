@@ -26,6 +26,11 @@ public class MainCard : MonoBehaviour
         cardBack.SetActive(true);
     }
 
+    internal bool GetCardBackState()
+    {
+        return cardBack.activeSelf;
+    }
+
     #endregion
 
     private void OnMouseDown() //reveals the type of card

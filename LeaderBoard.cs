@@ -156,6 +156,7 @@ public class LeaderBoard : MonoBehaviour
                 leaderBoardObject[i].transform.Find("Pos").GetComponent<TextMesh>().text = (i + 1).ToString();
                 leaderBoardObject[i].SetActive(true);
             }
+
             if (leaderBoardObject.Count > 5)
             {
                 for (int i = 5; i < leaderBoardObject.Count; i++)
@@ -193,7 +194,7 @@ public class LeaderBoard : MonoBehaviour
         string jsonData = JsonUtility.ToJson(playerList); //keep on from here
         PlayerPrefs.SetString(key, jsonData);
         PlayerPrefs.Save();
-        Debug.Log($"Saved the json data as: {PlayerPrefs.GetString(key)}, jsonData: {jsonData}");
+        //Debug.Log($"Saved the json data as: {PlayerPrefs.GetString(key)}, jsonData: {jsonData}");
     }
 
     private void LoadSavedData() //Loads the previous LeaderBoard players from a file
@@ -207,8 +208,8 @@ public class LeaderBoard : MonoBehaviour
                 CreateNewPlayer(savedData.leaderBList);
                 SortPositions();
                 AlignLeaderBoardItems();
-                Debug.Log($"Json data: {jsonData}");
-                Debug.Log("align LeaderBoard Items called");
+                Debug.Log($"Loaded Json data: {jsonData}");
+                //Debug.Log("align LeaderBoard Items called");
             }
         }
     }

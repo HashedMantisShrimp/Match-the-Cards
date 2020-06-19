@@ -8,17 +8,33 @@ public class ScoreManager : MonoBehaviour
     internal int score { get; private set; }
     internal int movesCounter;
     internal float time;
+    private Data savedData;
     private GameObject prevCard1;
     private GameObject prevCard2;
+    [SerializeField] private LoadGame loadGame;
     [SerializeField] private GameObject movesText;
 
     void Start()
     {
-        prevCard1 = null;
-        prevCard2 = null;
+        if (loadGame == null)
+            loadGame = FindObjectOfType<LoadGame>();
+
+        if(loadGame.saveDataIsPresent)
+        savedData = loadGame.SendData();
+
+        if (savedData != null)
+        {
+            movesCounter = savedData.moves;
+            currMatches = savedData.matches;
+        }
+        else
+        {
+            movesCounter = 0;
+            currMatches = 0;
+            prevCard1 = null;
+            prevCard2 = null;
+        }
         time = -1;
-        movesCounter = 0;
-        currMatches = 0;
     }
 
     void Update()
@@ -62,6 +78,23 @@ public class ScoreManager : MonoBehaviour
     internal void SetMatches(int totalMatches) //Checks if all matches have been found
     {
         currMatches = totalMatches;
+    }
+
+    internal void SetPrevCards(GameObject _prevCard)
+    {
+        if (prevCard1 == null)
+        {
+            prevCard1 = _prevCard;
+        }
+        else if (prevCard2 == null)
+        {
+            prevCard2 = _prevCard;
+        }
+        else 
+        {
+            prevCard1 = null;
+            prevCard2 = null;
+        }
     }
 
     #region Private Functions

@@ -16,31 +16,15 @@ public class ScoreManager : MonoBehaviour
 
     void Start()
     {
-        if (loadGame == null)
-            loadGame = FindObjectOfType<LoadGame>();
-
-        if(loadGame.saveDataIsPresent)
-        savedData = loadGame.SendData();
-
-        if (savedData != null)
-        {
-            movesCounter = savedData.moves;
-            currMatches = savedData.matches;
-        }
-        else
-        {
-            movesCounter = 0;
-            currMatches = 0;
-            prevCard1 = null;
-            prevCard2 = null;
-        }
-        time = -1;
+        AssignFields();
     }
 
     void Update()
     {
         movesText.GetComponent<TextMesh>().text = $"Moves: {movesCounter}";
     }
+
+    #region Internal Functions
 
     internal void ManageRevealedCards(GameObject card) //Manages the revealed cards
     {
@@ -97,7 +81,32 @@ public class ScoreManager : MonoBehaviour
         }
     }
 
+    #endregion
+
     #region Private Functions
+
+    private void AssignFields()
+    {
+        if (loadGame == null)
+            loadGame = FindObjectOfType<LoadGame>();
+
+        if (loadGame.saveDataIsPresent)
+            savedData = loadGame.SendData();
+
+        if (savedData != null)
+        {
+            movesCounter = savedData.moves;
+            currMatches = savedData.matches;
+        }
+        else
+        {
+            movesCounter = 0;
+            currMatches = 0;
+            prevCard1 = null;
+            prevCard2 = null;
+        }
+        time = -1;
+    }
 
     private void CheckForMatch (GameObject currentCard) //Checks if revealed cards match
     {
@@ -139,12 +148,12 @@ public class ScoreManager : MonoBehaviour
 
         yield return new WaitForSeconds(waitTime);
         prevCard1.GetComponent<BoxCollider2D>().enabled = true;
-        prevCard1.GetComponent<MainCard>().Unreveal();
+        prevCard1.GetComponent<MainCard>().Unreveal(true);
 
         prevCard2.GetComponent<BoxCollider2D>().enabled = true;
-        prevCard2.GetComponent<MainCard>().Unreveal();
+        prevCard2.GetComponent<MainCard>().Unreveal(true);
 
-        currCard.GetComponent<MainCard>().Unreveal();
+        currCard.GetComponent<MainCard>().Unreveal(true);
 
         prevCard1 = null;
         prevCard2 = null;

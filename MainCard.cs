@@ -6,10 +6,9 @@ public class MainCard : MonoBehaviour
     private GameObject cardBack;
     private ScoreManager scoreManager;
 
-
-    void Start()
+    private void Awake()
     {
-        scoreManager = FindObjectOfType<ScoreManager>();
+        scoreManager = FindObjectOfType<ScoreManager>(); //simplify this line of code
         cardBack = transform.Find("Card_Back").gameObject;
     }
 
@@ -21,9 +20,9 @@ public class MainCard : MonoBehaviour
         GetComponent<SpriteRenderer>().sprite = img;
     }
 
-    internal void Unreveal()
+    internal void Unreveal(bool unreveal)
     {
-        cardBack.SetActive(true);
+        cardBack.SetActive(unreveal);
     }
 
     internal bool GetCardBackState()
@@ -36,7 +35,7 @@ public class MainCard : MonoBehaviour
     private void OnMouseDown() //reveals the type of card
     {
         if (cardBack.activeSelf)
-            cardBack.SetActive(false);
+            Unreveal(false);
         scoreManager.ManageRevealedCards(gameObject); //calls function to check if revealed cards match
     }
     

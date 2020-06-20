@@ -208,7 +208,7 @@ public class LeaderBoard : MonoBehaviour
                 CreateNewPlayer(savedData.leaderBList);
                 SortPositions();
                 AlignLeaderBoardItems();
-                Debug.Log($"Loaded Json data: {jsonData}");
+                //Debug.Log($"Loaded Json data: {jsonData}");
                 //Debug.Log("align LeaderBoard Items called");
             }
         }

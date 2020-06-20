@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class SceneController : MonoBehaviour
@@ -25,7 +26,7 @@ public class SceneController : MonoBehaviour
     private Data saveData;
     private SaveGame saveGame;
     private LoadGame loadGame;
-    private MainCard[] cardArray;
+    private List<MainCard> cardArray = new List<MainCard>();
     [SerializeField] private GameObject SaveAndLoad;
     [SerializeField] private GameObject quitInterface;
     [SerializeField] private GameObject gameArea;
@@ -52,6 +53,7 @@ public class SceneController : MonoBehaviour
     void Start()
     {
         loadGame = SaveAndLoad.GetComponent<LoadGame>();
+        saveData = loadGame.SendData();
 
         if (loadGame.saveDataIsPresent)
         {
@@ -76,29 +78,27 @@ public class SceneController : MonoBehaviour
     internal void ToggleEscape() //Handles the 'paused-game' state
     {
         quitInterface.SetActive(!quitInterface.activeSelf);
-
-        if (!gameOver)
-        {
-            saveGame.AcquireData(playerName, time, scoreManager.movesCounter, scoreManager.currMatches);
-            saveGame.SaveData(playerName);
-        }
         
-
-        if (cardArray != null)
-        {
-            for(int i=0; i<cardArray.Length; i++)
-            {
-                int id = cardArray[i].id;
-                bool isEnabled = cardArray[i].enabled;
-                bool isColliderOn = cardArray[i].gameObject.GetComponent<BoxCollider2D>().enabled;
-                bool cardBackEnabled = cardArray[i].GetCardBackState();
-
-                saveGame.AcquireData(id, isEnabled, isColliderOn, cardBackEnabled);
-            }
-        }
-
         if (quitInterface.activeSelf)
         {
+            if (cardArray != null)
+            {
+                if (!gameOver)
+                {
+                    for (int i = 0; i < cardArray.Count; i++)
+                    {
+                        bool isEnabled = cardArray[i].enabled;
+                        bool isColliderOn = cardArray[i].gameObject.GetComponent<BoxCollider2D>().enabled;
+                        bool cardBackEnabled = cardArray[i].GetCardBackState();
+
+                        saveGame.AcquireData(i, isEnabled, isColliderOn, cardBackEnabled);
+                    }
+
+                    saveGame.AcquireData(playerName, time, scoreManager.movesCounter, scoreManager.currMatches);
+                    saveGame.SaveData(playerName);
+                }
+            }
+
             Time.timeScale = 0;
             DeactivateCards(true);
             leaderBoardButton.SetActive(false);
@@ -128,7 +128,7 @@ public class SceneController : MonoBehaviour
         SaveAndLoad = FindObjectOfType<SaveGame>().gameObject;
 
         saveGame = SaveAndLoad.GetComponent<SaveGame>();
-    }
+    }   
 
     private int[] ShuffleArray(int[] array) //shuffles an array
     {
@@ -173,6 +173,7 @@ public class SceneController : MonoBehaviour
 
                 card.ChangeSprite(id, imgs[id]);
                 saveGame.AcquireData(counter);
+                cardArray.Add(card);
                 counter++;
 
                 float posX = (offSetX * i) + startPos.x;
@@ -183,11 +184,13 @@ public class SceneController : MonoBehaviour
         }
     }
 
-    private void OrganizeGameBoard(int[] idArray)
+    private void OrganizeGameBoard(int[] idArray) //Organizes the cards according to previous save
     {
         Vector3 startPos = originalCard.transform.position;
         time = saveData.time;
         int counter = 0;
+        saveGame.AcquireData(idArray);
+        List<MainCard> cardToDisable = new List<MainCard>();
 
         for (int i = 0; i < gridCols; i++)
         {
@@ -208,25 +211,42 @@ public class SceneController : MonoBehaviour
                 int index = j * gridCols + i;
                 int id = idArray[index];
                 newCardInfo = saveData.cards[counter];
-                counter++;
-
+                saveGame.AcquireData(counter);
                 card.ChangeSprite(id, imgs[id]);
-                card.enabled = newCardInfo.scriptEnabled;
-
-                if (!newCardInfo.cardBackEnabled)
-                {
-                    card.Unreveal();
-                    scoreManager.SetPrevCards(card.gameObject);
-                }
-                    
+                cardArray.Add(card);
+                counter++;
                 
 
                 float posX = (offSetX * i) + startPos.x;
                 float posY = (offSetY * j) + startPos.y;
 
                 card.transform.position = new Vector3(posX, posY, startPos.z);
+
+                if (newCardInfo != null)
+                {
+                    card.enabled = newCardInfo.scriptEnabled;
+                    card.GetComponent<BoxCollider2D>().enabled = newCardInfo.cardBackEnabled;
+
+                    if (!newCardInfo.cardBackEnabled)
+                    {
+                        cardToDisable.Add(card);
+                    }
+                }
             }
         }
+
+        for (int i = 0; i < cardToDisable.Count; i++)//Reveals the cards that were revealed in prev game
+        {
+            cardToDisable[i].Unreveal(false);
+
+            if (cardToDisable[i].enabled)//If card is revealed and its script is active, then it hasnt found a match yet
+            {
+                scoreManager.SetPrevCards(cardToDisable[i].gameObject);
+                cardToDisable[i].enabled = false;
+            }
+            
+        }
+        cardToDisable.Clear();
     }
 
     private void UpdateGameStatus() //Checks & handles the 'state' of the game
@@ -273,11 +293,6 @@ public class SceneController : MonoBehaviour
 
     private IEnumerator DeactivateCards(float waitTime) //Deactivates cards after waitTime
     {
-        if (cardArray == null)
-        {
-            cardArray = FindObjectsOfType<MainCard>();
-        }
-        
         yield return new WaitForSeconds(waitTime);
 
         foreach (MainCard card in cardArray )
@@ -288,11 +303,6 @@ public class SceneController : MonoBehaviour
 
     private void DeactivateCards(bool deactivate) //Deactivates cards immediately
     {
-        if (cardArray == null)
-        {
-            cardArray = FindObjectsOfType<MainCard>();
-        }
-
         foreach (MainCard card in cardArray)
         {
             card.GetComponent<Transform>().gameObject.SetActive(!deactivate);

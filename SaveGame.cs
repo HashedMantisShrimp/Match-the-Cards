@@ -17,12 +17,31 @@ public class SaveGame : MonoBehaviour
         saveKey = $"save{PlayerPrefs.GetString("playerName")}";
     }
 
-    internal void AcquireData(int[] idArray) { data.IDs = idArray; }
-    internal void AcquireData(string pName, float time, int nMoves, int nMatches) { data.playerName = pName; data.time = time; data.moves = nMoves; data.matches = nMatches; }
+    internal void AcquireData(int[] idArray)
+    {
+        data.IDs = idArray;
+    }
 
-    internal void AcquireData(int id) { CardInfo newCard = new CardInfo();  data.cards.Add(id, newCard); }
+    internal void AcquireData(string pName, float time, int nMoves, int nMatches)
+    {
+        data.playerName = pName;
+        data.time = time;
+        data.moves = nMoves;
+        data.matches = nMatches;
+    }
+
+    internal void AcquireData(int id)
+    {
+        CardInfo newCard = new CardInfo();
+        data.cards.Add(id, newCard);
+    }
+
     internal void AcquireData(int id, bool scriptEnabled, bool boxColliderEnabled, bool isCardBackActive)
-    { data.cards[id].scriptEnabled = scriptEnabled; data.cards[id].boxColliderEnabled = boxColliderEnabled; data.cards[id].cardBackEnabled = isCardBackActive; }
+    {
+        data.cards[id].scriptEnabled = scriptEnabled;
+        data.cards[id].boxColliderEnabled = boxColliderEnabled;
+        data.cards[id].cardBackEnabled = isCardBackActive;
+    }
 
     internal void SaveData(string playerName)
     {
@@ -32,7 +51,6 @@ public class SaveGame : MonoBehaviour
             BinaryFormatter bf = new BinaryFormatter();
             FileStream file = File.Create(Application.persistentDataPath + $"/{saveFileName}");
             PlayerPrefs.SetInt(saveKey, 1);
-            PlayerPrefs.SetString("saveFormat", saveFormat);
             PlayerPrefs.Save();
 
             bf.Serialize(file, data);
@@ -41,11 +59,9 @@ public class SaveGame : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.Log($"<color=red>ATTENTION</color> Error found while saving game file: {e}");
+            Debug.Log($"<color=red>ATTENTION</color> Error found while saving game file: {e.Message}");
         }
-        
     }
-    
 }
 
 [System.Serializable]

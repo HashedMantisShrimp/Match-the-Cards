@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using System.Collections.Generic;
+using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 
 public class SaveGame : MonoBehaviour
@@ -17,12 +17,12 @@ public class SaveGame : MonoBehaviour
         saveKey = $"save{PlayerPrefs.GetString("playerName")}";
     }
 
-    internal void AcquireData(int[] idArray)
+    internal void AcquireData(int[] idArray) //Acquires the shuffled arrays used for card IDs
     {
         data.IDs = idArray;
     }
 
-    internal void AcquireData(string pName, float time, int nMoves, int nMatches)
+    internal void AcquireData(string pName, float time, int nMoves, int nMatches) //Acquires general game data
     {
         data.playerName = pName;
         data.time = time;
@@ -30,20 +30,20 @@ public class SaveGame : MonoBehaviour
         data.matches = nMatches;
     }
 
-    internal void AcquireData(int id)
+    internal void AcquireData(int id) //Acquires a new ID based on card Count
     {
         CardInfo newCard = new CardInfo();
         data.cards.Add(id, newCard);
     }
 
-    internal void AcquireData(int id, bool scriptEnabled, bool boxColliderEnabled, bool isCardBackActive)
+    internal void AcquireData(int id, bool scriptEnabled, bool boxColliderEnabled, bool isCardBackActive) //Acquires card info
     {
         data.cards[id].scriptEnabled = scriptEnabled;
         data.cards[id].boxColliderEnabled = boxColliderEnabled;
         data.cards[id].cardBackEnabled = isCardBackActive;
     }
 
-    internal void SaveData(string playerName)
+    internal void SaveData(string playerName) //Saves acquired data into a file
     {
         try
         {
@@ -64,7 +64,7 @@ public class SaveGame : MonoBehaviour
     }
 }
 
-[System.Serializable]
+[Serializable]
 public class CardInfo
 {
     public bool scriptEnabled;
@@ -72,7 +72,7 @@ public class CardInfo
     public bool cardBackEnabled;
 }
 
-[System.Serializable]
+[Serializable]
 public class Data
 {
     public int moves;

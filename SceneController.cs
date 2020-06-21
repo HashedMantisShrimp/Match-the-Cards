@@ -81,23 +81,7 @@ public class SceneController : MonoBehaviour
         
         if (quitInterface.activeSelf)
         {
-            if (cardArray != null)
-            {
-                if (!gameOver)
-                {
-                    for (int i = 0; i < cardArray.Count; i++)
-                    {
-                        bool isEnabled = cardArray[i].enabled;
-                        bool isColliderOn = cardArray[i].gameObject.GetComponent<BoxCollider2D>().enabled;
-                        bool cardBackEnabled = cardArray[i].GetCardBackState();
-
-                        saveGame.AcquireData(i, isEnabled, isColliderOn, cardBackEnabled);
-                    }
-
-                    saveGame.AcquireData(playerName, time, scoreManager.movesCounter, scoreManager.currMatches);
-                    saveGame.SaveData(playerName);
-                }
-            }
+            SaveGame();
 
             Time.timeScale = 0;
             DeactivateCards(true);
@@ -186,11 +170,19 @@ public class SceneController : MonoBehaviour
 
     private void OrganizeGameBoard(int[] idArray) //Organizes the cards according to previous save
     {
-        Vector3 startPos = originalCard.transform.position;
         time = saveData.time;
-        int counter = 0;
         saveGame.AcquireData(idArray);
         List<MainCard> cardToDisable = new List<MainCard>();
+
+        InstantiateCards(idArray, cardToDisable);
+        RevealCards(cardToDisable);
+        cardToDisable.Clear();
+    }
+
+    private void InstantiateCards(int [] idArray, List<MainCard> cardToDisable)
+    {
+        Vector3 startPos = originalCard.transform.position;
+        int counter = 0;
 
         for (int i = 0; i < gridCols; i++)
         {
@@ -215,7 +207,7 @@ public class SceneController : MonoBehaviour
                 card.ChangeSprite(id, imgs[id]);
                 cardArray.Add(card);
                 counter++;
-                
+
 
                 float posX = (offSetX * i) + startPos.x;
                 float posY = (offSetY * j) + startPos.y;
@@ -234,7 +226,10 @@ public class SceneController : MonoBehaviour
                 }
             }
         }
+    }
 
+    private void RevealCards(List<MainCard> cardToDisable)
+    {
         for (int i = 0; i < cardToDisable.Count; i++)//Reveals the cards that were revealed in prev game
         {
             cardToDisable[i].Unreveal(false);
@@ -244,9 +239,8 @@ public class SceneController : MonoBehaviour
                 scoreManager.SetPrevCards(cardToDisable[i].gameObject);
                 cardToDisable[i].enabled = false;
             }
-            
+
         }
-        cardToDisable.Clear();
     }
 
     private void UpdateGameStatus() //Checks & handles the 'state' of the game
@@ -277,6 +271,27 @@ public class SceneController : MonoBehaviour
             }
         }
         
+    }
+
+    private void SaveGame()
+    {
+        if (cardArray != null)
+        {
+            if (!gameOver)
+            {
+                for (int i = 0; i < cardArray.Count; i++)
+                {
+                    bool isEnabled = cardArray[i].enabled;
+                    bool isColliderOn = cardArray[i].gameObject.GetComponent<BoxCollider2D>().enabled;
+                    bool cardBackEnabled = cardArray[i].GetCardBackState();
+
+                    saveGame.AcquireData(i, isEnabled, isColliderOn, cardBackEnabled);
+                }
+
+                saveGame.AcquireData(playerName, time, scoreManager.movesCounter, scoreManager.currMatches);
+                saveGame.SaveData(playerName);
+            }
+        }
     }
 
     private IEnumerator Congrats() //Handles the Win-state

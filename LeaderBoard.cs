@@ -157,14 +157,13 @@ public class LeaderBoard : MonoBehaviour
                 leaderBoardObject[i].SetActive(true);
             }
 
-            if (leaderBoardObject.Count > 5)
+            if (leaderBoardObject.Count > 5) //Removes players below the 5th position
             {
                 for (int i = 5; i < leaderBoardObject.Count; i++)
                 {
                     string name = leaderBoardObject[i].transform.Find("PName").GetComponent<TextMesh>().text;
                     leaderBoardObject[i].SetActive(false);
                     leaderBoardPlayers.Remove(name);
-                    Debug.Log($"Deactivated leaderBoardObject{i}, {leaderBoardObject[i]}");
                 }
             }
         }
@@ -191,7 +190,7 @@ public class LeaderBoard : MonoBehaviour
         }
 
         ListOfPlayers playerList = new ListOfPlayers { leaderBList = playerScripts };
-        string jsonData = JsonUtility.ToJson(playerList); //keep on from here
+        string jsonData = JsonUtility.ToJson(playerList);
         PlayerPrefs.SetString(key, jsonData);
         PlayerPrefs.Save();
         //Debug.Log($"Saved the json data as: {PlayerPrefs.GetString(key)}, jsonData: {jsonData}");

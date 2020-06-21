@@ -23,8 +23,9 @@ public class LoadGame : MonoBehaviour
         return saveData;
     }
 
+    #region Private Functions
 
-    private void LoadSavedGame()
+    private void LoadSavedGame() //Loads a save file, if any exists
     {
         try
         {
@@ -34,7 +35,7 @@ public class LoadGame : MonoBehaviour
                 FileStream file = File.Open(Application.persistentDataPath + $"/{saveFileName}", FileMode.Open); //find a way to check if file was found
                 saveData = (Data)bf.Deserialize(file);
                 saveDataIsPresent = true;
-                Debug.Log($"Player: {saveData.playerName}, Number of moves: {saveData.moves}");
+                //Debug.Log($"Saved Data: Player - {saveData.playerName}, Number of moves - {saveData.moves}");
             }
             else
             {
@@ -48,7 +49,7 @@ public class LoadGame : MonoBehaviour
         }
     }
 
-    private bool IsSaveDataPresent(string playerName)
+    private bool IsSaveDataPresent(string playerName) //Checks if there is a save file for the current player
     {
         saveKey = $"save{playerName}";
         int isPresent = PlayerPrefs.GetInt(saveKey);
@@ -70,4 +71,6 @@ public class LoadGame : MonoBehaviour
         playerName = (string.IsNullOrEmpty(playerName) || string.IsNullOrWhiteSpace(playerName)) ? "John Doe" : playerName;
         saveFileName = $"{playerName + saveFormat}";
     }
+
+    #endregion
 }

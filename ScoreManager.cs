@@ -121,15 +121,7 @@ public class ScoreManager : MonoBehaviour
         if (currCardName.Equals(prevCardName1, StringComparison.OrdinalIgnoreCase) && currCardName.Equals(prevCardName2, StringComparison.OrdinalIgnoreCase)
             && (currCardID != prevCardID1) && (currCardID != prevCardID2) && (prevCardID1 != prevCardID2))
         {
-            prevCard1.GetComponent<MainCard>().enabled = false;
-            prevCard1.GetComponent<BoxCollider2D>().enabled = false;
-
-            prevCard2.GetComponent<MainCard>().enabled = false;
-            prevCard2.GetComponent<BoxCollider2D>().enabled = false;
-
-            currentCard.GetComponent<MainCard>().enabled = false;
-            currentCard.GetComponent<BoxCollider2D>().enabled = false;
-
+            MatchFound(currentCard);
             currMatches++;
             Debug.Log($"Number of Matches: {currMatches}");
             prevCard1 = null;
@@ -141,6 +133,18 @@ public class ScoreManager : MonoBehaviour
         }
 
         movesCounter++;
+    }
+
+    private void MatchFound(GameObject currCard)
+    {
+        prevCard1.GetComponent<MainCard>().enabled = false;
+        prevCard1.GetComponent<BoxCollider2D>().enabled = false;
+
+        prevCard2.GetComponent<MainCard>().enabled = false;
+        prevCard2.GetComponent<BoxCollider2D>().enabled = false;
+
+        currCard.GetComponent<MainCard>().enabled = false;
+        currCard.GetComponent<BoxCollider2D>().enabled = false;
     }
 
     private IEnumerator UnrevealCards(float waitTime, GameObject currCard) //Unreveals cards after waitTime, called when 3 cards have been revealed

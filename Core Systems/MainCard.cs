@@ -20,7 +20,7 @@ public class MainCard : MonoBehaviour
         GetComponent<SpriteRenderer>().sprite = img;
     }
 
-    internal void Unreveal(bool unreveal)
+    internal void Unreveal(bool unreveal) //Unreveals cards
     {
         cardBack.SetActive(unreveal);
     }

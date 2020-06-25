@@ -5,18 +5,16 @@ using UnityEngine;
 public class SceneController : MonoBehaviour
 {
     #region Variables
-
+    
     public bool winGame = false;
-    public const int gridCols = 4;
-    public const int gridRows = 3;
-    public const float offSetX = 4f;
-    public const float offSetY = 5f;
+    public bool deleteSave = false;
     internal float time = 0;
     internal int tMins = 00;
     internal float tSecs = 00;
-    private const int totalMatches = 4;
-    private string playerName;
-    private int score =-1;
+    private const int gridCols = 4;
+    private const int gridRows = 3;
+    private const float offSetX = 4f;
+    private const float offSetY = 5f;
     private bool gameOver = false;
     private GameObject timeText;
     private GameObject leaderBoardButton;
@@ -24,9 +22,8 @@ public class SceneController : MonoBehaviour
     private ScoreManager scoreManager;
     private LeaderBoard leaderBoard;
     private Data saveData;
-    private SaveGame saveGame;
-    private LoadGame loadGame;
-    private List<MainCard> cardArray = new List<MainCard>();
+    private Save save;
+    private GameData gameData;
     [SerializeField] private GameObject SaveAndLoad;
     [SerializeField] private GameObject quitInterface;
     [SerializeField] private GameObject gameArea;
@@ -37,33 +34,14 @@ public class SceneController : MonoBehaviour
 
     #endregion
 
+    //---------------------------------------------------------------------------------------------------
+
     #region Init Functions
-
-    private void OnEnable()
-    {
-        playerName = PlayerPrefs.GetString("playerName");
-        playerName = (string.IsNullOrEmpty(playerName) || string.IsNullOrWhiteSpace(playerName)) ? "John Doe" : playerName;
-    }
-
-    private void Awake()
-    {
-        AssignFields();
-    }
 
     void Start()
     {
-        loadGame = SaveAndLoad.GetComponent<LoadGame>();
-        saveData = loadGame.SendData();
+        AssignFields();
 
-        if (loadGame.saveDataIsPresent)
-        {
-            OrganizeGameBoard(saveData.IDs);
-        }
-        else
-        {
-            OrganizeGameBoard();
-        }
-        
         if (quitInterface != null)
             quitInterface.SetActive(false);
     }
@@ -72,7 +50,6 @@ public class SceneController : MonoBehaviour
     {
         UpdateGameStatus();
     }
-
     #endregion
 
     internal void ToggleEscape() //Handles the 'paused-game' state
@@ -81,8 +58,7 @@ public class SceneController : MonoBehaviour
         
         if (quitInterface.activeSelf)
         {
-            SaveGame();
-
+            gameData.SetTime(time);
             Time.timeScale = 0;
             DeactivateCards(true);
             leaderBoardButton.SetActive(false);
@@ -98,7 +74,21 @@ public class SceneController : MonoBehaviour
         }
     }
 
+    //---------------------------------------------------------------------------------------------------
+
     #region Private Functions
+
+    private void InitiateGameBoard() //Handles the organization of the game board
+    {
+        if (gameData.GetSaveDataPresent())
+        {
+            OrganizeGameBoard(saveData.IDs);
+        }
+        else
+        {
+            OrganizeGameBoard();
+        }
+    }
 
     private void AssignFields()
     {
@@ -109,9 +99,12 @@ public class SceneController : MonoBehaviour
         leaderBoardButton = FindObjectOfType<ToggleButton>().gameObject;
 
         if(SaveAndLoad==null)
-        SaveAndLoad = FindObjectOfType<SaveGame>().gameObject;
+        SaveAndLoad = FindObjectOfType<Save>().gameObject;
 
-        saveGame = SaveAndLoad.GetComponent<SaveGame>();
+        save = SaveAndLoad.GetComponent<Save>();
+        gameData = SaveAndLoad.GetComponent<GameData>();
+        saveData = GameData.saveData;
+        InitiateGameBoard();
     }   
 
     private int[] ShuffleArray(int[] array) //shuffles an array
@@ -135,7 +128,7 @@ public class SceneController : MonoBehaviour
         int[] numbers = { 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3 };
         int counter=0;
         numbers = ShuffleArray(numbers);
-        saveGame.AcquireData(numbers);
+        gameData.SetIDArray(numbers);
 
         for (int i = 0; i < gridCols; i++)
         {
@@ -156,8 +149,8 @@ public class SceneController : MonoBehaviour
                 int id = numbers[index];
 
                 card.ChangeSprite(id, imgs[id]);
-                saveGame.AcquireData(counter);
-                cardArray.Add(card);
+                save.AcquireData(counter);
+                gameData.AddToCardList(card);
                 counter++;
 
                 float posX = (offSetX * i) + startPos.x;
@@ -171,18 +164,18 @@ public class SceneController : MonoBehaviour
     private void OrganizeGameBoard(int[] idArray) //Organizes the cards according to previous save
     {
         time = saveData.time;
-        saveGame.AcquireData(idArray);
-        List<MainCard> cardToDisable = new List<MainCard>();
+        List<MainCard> cardsToReveal = new List<MainCard>();
 
-        InstantiateCards(idArray, cardToDisable);
-        RevealCards(cardToDisable);
-        cardToDisable.Clear();
+        InstantiateCards(idArray, cardsToReveal);
+        RevealCards(cardsToReveal);
+        cardsToReveal.Clear();
     }
 
-    private void InstantiateCards(int [] idArray, List<MainCard> cardToDisable)
+    private void InstantiateCards(int [] idArray, List<MainCard> cardList)
     {
         Vector3 startPos = originalCard.transform.position;
         int counter = 0;
+        gameData.SetIDArray(idArray);
 
         for (int i = 0; i < gridCols; i++)
         {
@@ -203,11 +196,10 @@ public class SceneController : MonoBehaviour
                 int index = j * gridCols + i;
                 int id = idArray[index];
                 newCardInfo = saveData.cards[counter];
-                saveGame.AcquireData(counter);
+                save.AcquireData(counter);
                 card.ChangeSprite(id, imgs[id]);
-                cardArray.Add(card);
+                gameData.AddToCardList(card);
                 counter++;
-
 
                 float posX = (offSetX * i) + startPos.x;
                 float posY = (offSetY * j) + startPos.y;
@@ -221,25 +213,24 @@ public class SceneController : MonoBehaviour
 
                     if (!newCardInfo.cardBackEnabled)
                     {
-                        cardToDisable.Add(card);
+                        cardList.Add(card);
+                        //Debug.Log($"Card added to list card script: {card.enabled}", card.gameObject);
                     }
                 }
             }
         }
     }
 
-    private void RevealCards(List<MainCard> cardToDisable)
+    private void RevealCards(List<MainCard> cardList)
     {
-        for (int i = 0; i < cardToDisable.Count; i++)//Reveals the cards that were revealed in prev game
+        for (int i = 0; i < cardList.Count; i++)//Reveals the cards that were revealed in prev game
         {
-            cardToDisable[i].Unreveal(false);
+            cardList[i].Unreveal(false);
 
-            if (cardToDisable[i].enabled)//If card is revealed and its script is active, then it hasnt found a match yet
+            if (cardList[i].enabled)//If card is revealed and its script is active, then it hasnt found a match yet
             {
-                scoreManager.SetPrevCards(cardToDisable[i].gameObject);
-                cardToDisable[i].enabled = false;
+                scoreManager.SetPrevCards(cardList[i].gameObject);
             }
-
         }
     }
 
@@ -252,12 +243,16 @@ public class SceneController : MonoBehaviour
             WinCheatCode();
 
             if (winGame)
-                scoreManager.SetMatches(totalMatches);
+                scoreManager.SetMatches();
 
-            timeText.GetComponent<TextMesh>().text = $"{playerName} - {tMins}:{Mathf.RoundToInt(tSecs).ToString("D2")}";
+            if (deleteSave)
+                save.DeleteSaveData();
 
-            if (scoreManager.currMatches == totalMatches)
+            timeText.GetComponent<TextMesh>().text = $"{gameData.GetPlayerName()} - {tMins}:{Mathf.RoundToInt(tSecs).ToString("D2")}";
+
+            if (gameData.GetCurrentMatches() == GameData.totalMatches)
             {
+                //assign certain data to gameData here
                 Debug.Log($"Congratulations You Won! Time: {time}");
                 StartCoroutine(Congrats());
                 gameOver = true;
@@ -270,11 +265,12 @@ public class SceneController : MonoBehaviour
                 tMins = (Mathf.RoundToInt(time) % 60 == 0) ? Mathf.RoundToInt(time) / 60 : tMins;
             }
         }
-        
     }
 
-    private void SaveGame()
+    internal void SaveGame() //Sends data to the Save script & saves the game
     {
+        List<MainCard> cardArray = gameData.GetMainCards();
+
         if (cardArray != null)
         {
             if (!gameOver)
@@ -285,11 +281,11 @@ public class SceneController : MonoBehaviour
                     bool isColliderOn = cardArray[i].gameObject.GetComponent<BoxCollider2D>().enabled;
                     bool cardBackEnabled = cardArray[i].GetCardBackState();
 
-                    saveGame.AcquireData(i, isEnabled, isColliderOn, cardBackEnabled);
+                    save.AcquireData(i, isEnabled, isColliderOn, cardBackEnabled);
                 }
 
-                saveGame.AcquireData(playerName, time, scoreManager.movesCounter, scoreManager.currMatches);
-                saveGame.SaveData(playerName);
+                save.AcquireData();
+                save.SaveData();
             }
         }
     }
@@ -299,18 +295,19 @@ public class SceneController : MonoBehaviour
         SendData();
         yield return new WaitForSeconds(0.3f);
         scoreManager.CalculateScore();
-        score = scoreManager.score;
+        int score = gameData.GetScore();//Simplify this
         scoreText.GetComponent<TextMesh>().text = $"Score: {score}";
-        leaderBoard.SendData(playerName, score, $"{tMins}:{Mathf.RoundToInt(tSecs).ToString("D2")}");
+        leaderBoard.SendData($"{tMins}:{Mathf.RoundToInt(tSecs).ToString("D2")}");
         StartCoroutine(DeactivateCards(1f));
         congrats.SetActive(true);
+        save.DeleteSaveData();
     }
 
     private IEnumerator DeactivateCards(float waitTime) //Deactivates cards after waitTime
     {
         yield return new WaitForSeconds(waitTime);
 
-        foreach (MainCard card in cardArray )
+        foreach (MainCard card in gameData.GetMainCards())
         {
             card.GetComponent<Transform>().gameObject.SetActive(false);
         }
@@ -318,7 +315,7 @@ public class SceneController : MonoBehaviour
 
     private void DeactivateCards(bool deactivate) //Deactivates cards immediately
     {
-        foreach (MainCard card in cardArray)
+        foreach (MainCard card in gameData.GetMainCards())
         {
             card.GetComponent<Transform>().gameObject.SetActive(!deactivate);
         }
@@ -326,7 +323,8 @@ public class SceneController : MonoBehaviour
 
     private void SendData() // Sends time to ScoreManager to calculate score
     {
-        scoreManager.time = time;
+        gameData.SetTime(time);
+        scoreManager.SetTime();
     }
 
     private void CheckPauseStatus() //Checks the 'paused-game' state
@@ -344,6 +342,5 @@ public class SceneController : MonoBehaviour
                 winGame = true;
         }
     }
-
     #endregion
 }

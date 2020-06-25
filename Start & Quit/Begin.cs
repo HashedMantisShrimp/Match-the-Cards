@@ -23,6 +23,8 @@ public class Begin : MonoBehaviour
         }
     }
 
+    //---------------------------------------------------------------------------------------------------
+
     #region Private Functions
 
     private void OnMouseDown()

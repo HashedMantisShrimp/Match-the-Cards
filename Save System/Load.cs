@@ -3,14 +3,15 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 
-public class LoadGame : MonoBehaviour
+public class Load : MonoBehaviour
 {
+    internal bool saveDataIsPresent { get; private set; } = false;
     private Data saveData;
-    private const string saveFormat = "gameSave.save";
+    private string saveFormat;
     private string playerName;
     private string saveFileName;
     private string saveKey;
-    internal bool saveDataIsPresent { get; private set; } = false;
+    [SerializeField] private GameData gameData;
 
     private void Awake()
     {
@@ -18,10 +19,7 @@ public class LoadGame : MonoBehaviour
         LoadSavedGame();
     }
 
-    internal Data SendData()
-    {
-        return saveData;
-    }
+    //---------------------------------------------------------------------------------------------------
 
     #region Private Functions
 
@@ -35,12 +33,15 @@ public class LoadGame : MonoBehaviour
                 FileStream file = File.Open(Application.persistentDataPath + $"/{saveFileName}", FileMode.Open); //find a way to check if file was found
                 saveData = (Data)bf.Deserialize(file);
                 saveDataIsPresent = true;
-                //Debug.Log($"Saved Data: Player - {saveData.playerName}, Number of moves - {saveData.moves}");
+                //Debug.Log($"Saved Data: Player - {saveData.playerName}, Number of moves - {saveData.moves}, Time - {saveData.time}, matches - {saveData.matches}");
+                GameData.saveData = saveData;
+                gameData.SetSaveDataPresent(saveDataIsPresent);
             }
             else
             {
                 saveDataIsPresent = false;
-                Debug.Log("Save data is not present");
+                gameData.SetSaveDataPresent(saveDataIsPresent);
+                //Debug.Log("Save data is not present");
             }
         }
         catch (Exception e)
@@ -51,7 +52,7 @@ public class LoadGame : MonoBehaviour
 
     private bool IsSaveDataPresent(string playerName) //Checks if there is a save file for the current player
     {
-        saveKey = $"save{playerName}";
+        
         int isPresent = PlayerPrefs.GetInt(saveKey);
 
         if (isPresent == 1)
@@ -59,18 +60,18 @@ public class LoadGame : MonoBehaviour
             //Debug.Log($"PLayer was found isPresent: {isPresent}, saveKey: {saveKey}, playerName: {playerName}");
             return true;
         }
-
-        //Debug.Log($"Player was <color=red>NOT</color> found isPresent: {isPresent}, saveKey: {saveKey}, playerName: {playerName}");
+        
         return false;
     }
 
     private void AssignFields()
     {
-        saveData = new Data();
         playerName = PlayerPrefs.GetString("playerName");
         playerName = (string.IsNullOrEmpty(playerName) || string.IsNullOrWhiteSpace(playerName)) ? "John Doe" : playerName;
+        saveFormat = GameData.saveFormat;
+        saveData = new Data();
+        saveKey = $"save{playerName}";
         saveFileName = $"{playerName + saveFormat}";
     }
-
     #endregion
 }

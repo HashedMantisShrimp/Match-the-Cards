@@ -15,8 +15,11 @@ public class LeaderBoard : MonoBehaviour
     private string time;
     private Dictionary<string, PlayerInfo> leaderBoardPlayers = new Dictionary<string, PlayerInfo>();
     private List<GameObject> leaderBoardObject = new List<GameObject>();
+    [SerializeField] private GameData gameData;
     [SerializeField] private GameObject leaderBoardItem;
     #endregion
+
+    //---------------------------------------------------------------------------------------------------
 
     void Awake()
     {
@@ -32,10 +35,10 @@ public class LeaderBoard : MonoBehaviour
 
     #region Internal Functions
 
-    internal void SendData(string _pName, int _score, string _time) //Gets data to be assigned to current player
+    internal void SendData(string _time) //Gets data to be assigned to current player
     {
-        playerName = _pName;
-        score = _score;
+        playerName = gameData.GetPlayerName();
+        score = gameData.GetScore();
         time = _time;
         CreateNewPlayer();
         SortPositions();
@@ -54,6 +57,8 @@ public class LeaderBoard : MonoBehaviour
         leaderBoardObject.Clear();
     }
     #endregion
+
+    //---------------------------------------------------------------------------------------------------
 
     #region Private Functions
 
@@ -98,7 +103,6 @@ public class LeaderBoard : MonoBehaviour
             }
         }
     }
-
 
     private void CreateNewPlayer() //Creates player or updates player data
     {
@@ -168,7 +172,6 @@ public class LeaderBoard : MonoBehaviour
             }
         }
     }
-        
     
     private void AssignValues(GameObject item, PlayerInfo data) //Assigns data to LeaderBoard gameObject
     {
@@ -213,6 +216,8 @@ public class LeaderBoard : MonoBehaviour
         }
     }
     #endregion
+
+    //---------------------------------------------------------------------------------------------------
 
     [System.Serializable]
     private class PlayerInfo

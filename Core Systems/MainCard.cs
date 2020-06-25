@@ -12,6 +12,15 @@ public class MainCard : MonoBehaviour
         cardBack = transform.Find("Card_Back").gameObject;
     }
 
+    private void OnMouseDown() //reveals the type of card
+    {
+        if (cardBack.activeSelf)
+            Unreveal(false);
+        scoreManager.ManageRevealedCards(gameObject); //calls function to check if revealed cards match
+    }
+
+    //---------------------------------------------------------------------------------------------------
+
     #region Internal Functions
 
     internal void ChangeSprite(int id, Sprite img) //Assigns a sprite (type of card) to a card
@@ -29,14 +38,5 @@ public class MainCard : MonoBehaviour
     {
         return cardBack.activeSelf;
     }
-
     #endregion
-
-    private void OnMouseDown() //reveals the type of card
-    {
-        if (cardBack.activeSelf)
-            Unreveal(false);
-        scoreManager.ManageRevealedCards(gameObject); //calls function to check if revealed cards match
-    }
-    
 }

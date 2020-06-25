@@ -4,16 +4,19 @@ using UnityEngine;
 
 public class ScoreManager : MonoBehaviour
 {
-    internal int currMatches { get; private set; }
-    internal int score { get; private set; }
-    internal int movesCounter;
-    internal float time;
+    private int currMatches { get; set; }
+    private int score { get; set; }
+    private int movesCounter;
+    private float time;
     private Data savedData;
     private GameObject prevCard1;
     private GameObject prevCard2;
-    [SerializeField] private LoadGame loadGame;
+    [SerializeField]private GameData gameData;
     [SerializeField] private GameObject movesText;
 
+    //---------------------------------------------------------------------------------------------------
+
+    #region Init Functions
     void Start()
     {
         AssignFields();
@@ -23,6 +26,9 @@ public class ScoreManager : MonoBehaviour
     {
         movesText.GetComponent<TextMesh>().text = $"Moves: {movesCounter}";
     }
+    #endregion
+
+    //---------------------------------------------------------------------------------------------------
 
     #region Internal Functions
 
@@ -50,7 +56,7 @@ public class ScoreManager : MonoBehaviour
         {
             int secs = Mathf.RoundToInt(Mathf.RoundToInt(time));
             score = (movesCounter * 5) + secs;
-
+            gameData.SetScore(score);
             Debug.Log($"Seconds: {secs}, score: {score}");
             return;
         }
@@ -59,9 +65,9 @@ public class ScoreManager : MonoBehaviour
         score = -1;
     }
 
-    internal void SetMatches(int totalMatches) //Checks if all matches have been found
+    internal void SetMatches()
     {
-        currMatches = totalMatches;
+        currMatches = GameData.totalMatches;
     }
 
     internal void SetPrevCards(GameObject _prevCard)
@@ -69,34 +75,42 @@ public class ScoreManager : MonoBehaviour
         if (prevCard1 == null)
         {
             prevCard1 = _prevCard;
+            Debug.Log("PrevCard1", prevCard1);
         }
         else if (prevCard2 == null)
         {
             prevCard2 = _prevCard;
+            Debug.Log("PrevCard2", prevCard2);
         }
-        else 
+        else
         {
             prevCard1 = null;
             prevCard2 = null;
+            Debug.Log("PrevCard1 & prevCard2 are null");
         }
     }
 
+    internal void SetTime()
+    {
+        time = gameData.GetTime();
+    }
     #endregion
+
+    //---------------------------------------------------------------------------------------------------
 
     #region Private Functions
 
     private void AssignFields()
     {
-        if (loadGame == null)
-            loadGame = FindObjectOfType<LoadGame>();
 
-        if (loadGame.saveDataIsPresent)
-            savedData = loadGame.SendData();
+        if (gameData.GetSaveDataPresent())
+            savedData = GameData.saveData;
 
         if (savedData != null)
         {
             movesCounter = savedData.moves;
             currMatches = savedData.matches;
+            //Debug.Log("saveData is NOT Null in ScoreManager");
         }
         else
         {
@@ -104,6 +118,7 @@ public class ScoreManager : MonoBehaviour
             currMatches = 0;
             prevCard1 = null;
             prevCard2 = null;
+            //Debug.Log("saveData is Null in ScoreManager");
         }
         time = -1;
     }
@@ -123,6 +138,8 @@ public class ScoreManager : MonoBehaviour
         {
             MatchFound(currentCard);
             currMatches++;
+            gameData.SetCurrentMatches(currMatches);
+
             Debug.Log($"Number of Matches: {currMatches}");
             prevCard1 = null;
             prevCard2 = null;
@@ -133,6 +150,7 @@ public class ScoreManager : MonoBehaviour
         }
 
         movesCounter++;
+        gameData.SetMoveCounter(movesCounter);
     }
 
     private void MatchFound(GameObject currCard)

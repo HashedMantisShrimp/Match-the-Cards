@@ -1,13 +1,12 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class ResetLeaderBoard : MonoBehaviour
 {
-    LeaderBoard script;
+    [SerializeField] private LeaderBoard script;
 
     private void Awake()
     {
+        if(!script)
         script = FindObjectOfType<LeaderBoard>();
     }
 

@@ -3,11 +3,18 @@ using UnityEngine;
 
 public class Quit : MonoBehaviour
 {
-    private SceneController sceneController;
+    [SerializeField] private SceneController sceneController;
+    [SerializeField] private GameObject saveGameButton;
 
     private void Awake()
     {
+        if(!sceneController)
         sceneController = FindObjectOfType<SceneController>();
+    }
+
+    private void OnEnable()
+    {
+        saveGameButton.SetActive(true);
     }
 
     private void OnMouseDown() //checks if yes or no is pressed and acts accordingly

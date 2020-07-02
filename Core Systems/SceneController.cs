@@ -164,6 +164,8 @@ public class SceneController : MonoBehaviour
     private void OrganizeGameBoard(int[] idArray) //Organizes the cards according to previous save
     {
         time = saveData.time;
+        gameData.SetCurrentMatches(saveData.matches);
+        gameData.SetMoveCounter(saveData.moves);
         List<MainCard> cardsToReveal = new List<MainCard>();
 
         InstantiateCards(idArray, cardsToReveal);
@@ -196,7 +198,6 @@ public class SceneController : MonoBehaviour
                 int index = j * gridCols + i;
                 int id = idArray[index];
                 newCardInfo = saveData.cards[counter];
-                save.AcquireData(counter);
                 card.ChangeSprite(id, imgs[id]);
                 gameData.AddToCardList(card);
                 counter++;
@@ -219,6 +220,7 @@ public class SceneController : MonoBehaviour
                 }
             }
         }
+        save.AcquireData(saveData.cards);
     }
 
     private void RevealCards(List<MainCard> cardList)

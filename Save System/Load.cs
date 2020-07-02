@@ -33,9 +33,10 @@ public class Load : MonoBehaviour
                 FileStream file = File.Open(Application.persistentDataPath + $"/{saveFileName}", FileMode.Open); //find a way to check if file was found
                 saveData = (Data)bf.Deserialize(file);
                 saveDataIsPresent = true;
-                //Debug.Log($"Saved Data: Player - {saveData.playerName}, Number of moves - {saveData.moves}, Time - {saveData.time}, matches - {saveData.matches}");
+                Debug.Log($"<color=yellow>Loaded Data</color> - Player: {saveData.playerName}, Number of moves: {saveData.moves}, matches: {saveData.matches}, Time: {saveData.time}");
                 GameData.saveData = saveData;
                 gameData.SetSaveDataPresent(saveDataIsPresent);
+                file.Close();
             }
             else
             {

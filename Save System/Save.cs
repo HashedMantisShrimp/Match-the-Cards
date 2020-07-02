@@ -24,7 +24,7 @@ public class Save : MonoBehaviour
         data.time = gameData.GetTime();
         data.moves = gameData.GetMoveCounter();
         data.matches = gameData.GetCurrentMatches();
-        Debug.Log($"Save: Time - {data.time}, Moves: {data.moves}, Matches - {data.matches}");
+        Debug.Log($"Save - Time: {data.time}, Moves: {data.moves}, Matches: {data.matches}");
     }
 
     internal void AcquireData(int id) //Acquires a new ID based on card Count
@@ -40,20 +40,53 @@ public class Save : MonoBehaviour
         data.cards[id].cardBackEnabled = isCardBackActive;
     }
 
+    internal void AcquireData(Dictionary<int, CardInfo> _cards)
+    {
+        data.cards = _cards;
+    }
+
     internal void SaveData() //Saves acquired data into a file
     {
         try
         {
+            bool internetConnection = false;
             playerName = gameData.GetPlayerName();
             saveFileName = playerName + GameData.saveFormat;
-            BinaryFormatter bf = new BinaryFormatter();
-            FileStream file = File.Create(Application.persistentDataPath + $"/{saveFileName}");
-            PlayerPrefs.SetInt(saveKey, 1);
-            PlayerPrefs.Save();
 
-            bf.Serialize(file, data);
-            file.Close();
-            Debug.Log("Game Saved.");
+            StartCoroutine(Internet.CheckInternetConnections(isConnected => 
+            {
+                internetConnection = isConnected;
+
+                Debug.Log($"Internet Connection is present: {internetConnection}");
+            }
+            ));
+
+            if (internetConnection)// system should not proceed with saving the data while connectivity status hasn't been established.
+            {//When game is saved, if there is only one card left to reveal, it won't call congrats() when card is revealed, the number of matches wasn't keeping up
+
+                //Substitute with code to save data onto online db
+
+                BinaryFormatter bf = new BinaryFormatter();
+                FileStream file = File.Create(Application.persistentDataPath + $"/{saveFileName}");
+                PlayerPrefs.SetInt(saveKey, 1);
+                PlayerPrefs.Save();
+
+                bf.Serialize(file, data);
+                file.Close();
+                Debug.Log("Game Saved."); //Delete this part of the code
+            }
+            else
+            {
+                
+                BinaryFormatter bf = new BinaryFormatter();
+                FileStream file = File.Create(Application.persistentDataPath + $"/{saveFileName}");
+                PlayerPrefs.SetInt(saveKey, 1);
+                PlayerPrefs.Save();
+
+                bf.Serialize(file, data);
+                file.Close();
+                Debug.Log("Game Saved.");
+            }
         }
         catch (Exception e)
         {

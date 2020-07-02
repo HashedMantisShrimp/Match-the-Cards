@@ -31,6 +31,8 @@ public class GameData : MonoBehaviour
 
     #region Internal Functions
 
+    #region Set Functions
+
     internal void SetSaveDataPresent(bool isDataPresent)
     {
         saveDataPresent = isDataPresent;
@@ -65,6 +67,9 @@ public class GameData : MonoBehaviour
     {
         idArray = _idArray;
     }
+    #endregion
+
+    #region Get Functions
 
     internal bool GetSaveDataPresent()
     {
@@ -105,5 +110,7 @@ public class GameData : MonoBehaviour
     {
         return cardList;
     }
+    #endregion
+
     #endregion
 }

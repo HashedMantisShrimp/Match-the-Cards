@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
@@ -45,24 +46,17 @@ public class Save : MonoBehaviour
         data.cards = _cards;
     }
 
-    internal void SaveData() //Saves acquired data into a file
+    internal async Task SaveData() //Saves acquired data into a file
     {
         try
         {
-            bool internetConnection = false;
             playerName = gameData.GetPlayerName();
             saveFileName = playerName + GameData.saveFormat;
 
-            StartCoroutine(Internet.CheckInternetConnections(isConnected => 
+            bool internetConnection = await Internet.CheckInternetConnectivity();
+
+            if (internetConnection)
             {
-                internetConnection = isConnected;
-
-                Debug.Log($"Internet Connection is present: {internetConnection}");
-            }
-            ));
-
-            if (internetConnection)// system should not proceed with saving the data while connectivity status hasn't been established.
-            {//When game is saved, if there is only one card left to reveal, it won't call congrats() when card is revealed, the number of matches wasn't keeping up
 
                 //Substitute with code to save data onto online db
 
@@ -73,7 +67,7 @@ public class Save : MonoBehaviour
 
                 bf.Serialize(file, data);
                 file.Close();
-                Debug.Log("Game Saved."); //Delete this part of the code
+                Debug.Log("Game Saved. With Internet connection");
             }
             else
             {
@@ -85,7 +79,7 @@ public class Save : MonoBehaviour
 
                 bf.Serialize(file, data);
                 file.Close();
-                Debug.Log("Game Saved.");
+                Debug.Log("Game Saved. Without Internet connection");
             }
         }
         catch (Exception e)

@@ -8,6 +8,7 @@ public class SceneController : MonoBehaviour
     
     public bool winGame = false;
     public bool deleteSave = false;
+    public bool dontDeleteSave = false;
     internal float time = 0;
     internal int tMins = 00;
     internal float tSecs = 00;
@@ -270,7 +271,7 @@ public class SceneController : MonoBehaviour
     }
 
     internal void SaveGame() //Sends data to the Save script & saves the game
-    {
+    {//TODO: Don't allow game to be saved if it has already been finished
         List<MainCard> cardArray = gameData.GetMainCards();
 
         if (cardArray != null)
@@ -302,6 +303,8 @@ public class SceneController : MonoBehaviour
         leaderBoard.SendData($"{tMins}:{Mathf.RoundToInt(tSecs).ToString("D2")}");
         StartCoroutine(DeactivateCards(1f));
         congrats.SetActive(true);
+
+        if(!dontDeleteSave)
         save.DeleteSaveData();
     }
 

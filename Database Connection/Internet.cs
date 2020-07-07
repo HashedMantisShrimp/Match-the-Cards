@@ -21,7 +21,7 @@ public static class Internet
         if (newRequest.isNetworkError)
             Debug.Log($"<color=red>Error</color> found while checking connection: {newRequest.error}.");
 
-        //Debug.Log($"{nameof(newRequest)} connection: {!newRequest.isNetworkError}");
+        Debug.Log($"{nameof(newRequest)} connection: {!newRequest.isNetworkError}");
         return !newRequest.isNetworkError;
     }
 }

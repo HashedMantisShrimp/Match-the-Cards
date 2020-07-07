@@ -18,6 +18,8 @@ public class Save : MonoBehaviour
         saveKey = $"save{gameData.GetPlayerName()}";
     }
 
+    #region AcquireData
+
     internal void AcquireData() //Acquires general game data
     {
         data.IDs = gameData.GetIDArray();
@@ -45,6 +47,7 @@ public class Save : MonoBehaviour
     {
         data.cards = _cards;
     }
+    #endregion
 
     internal async Task SaveData() //Saves acquired data into a file
     {
@@ -88,7 +91,7 @@ public class Save : MonoBehaviour
         }
     }
 
-    internal void DeleteSaveData()
+    internal void DeleteSaveData() //TODO: Test this method, maybe implement async & await
     {
         try
         {

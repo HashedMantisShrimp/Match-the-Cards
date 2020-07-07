@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class LeaderBoard : MonoBehaviour
@@ -184,19 +186,40 @@ public class LeaderBoard : MonoBehaviour
         timeObject.text = data._time;
     }
     
-    private void SaveInfo() //Saves the current LeaderBoard players into a file
+    private async Task SaveInfo() //Saves the current LeaderBoard players into a file
     {
-        List<PlayerInfo> playerScripts = new List<PlayerInfo>();
-        foreach (PlayerInfo item in leaderBoardPlayers.Values)
+        try
         {
-            playerScripts.Add(item);
-        }
+            List<PlayerInfo> playerScripts = new List<PlayerInfo>();
+            foreach (PlayerInfo item in leaderBoardPlayers.Values)
+            {
+                playerScripts.Add(item);
+            }
 
-        ListOfPlayers playerList = new ListOfPlayers { leaderBList = playerScripts };
-        string jsonData = JsonUtility.ToJson(playerList);
-        PlayerPrefs.SetString(key, jsonData);
-        PlayerPrefs.Save();
-        //Debug.Log($"Saved the json data as: {PlayerPrefs.GetString(key)}, jsonData: {jsonData}");
+            ListOfPlayers playerList = new ListOfPlayers { leaderBList = playerScripts };
+            string jsonData = JsonUtility.ToJson(playerList);
+
+            if (await Internet.CheckInternetConnectivity())
+            {
+                await Database.SaveLeaderBoard(jsonData);
+
+                Debug.Log($"Reached Line after SaveLeaderBoard");
+                PlayerPrefs.SetString(key, jsonData); //Delete this part ltr
+                PlayerPrefs.Save();
+            }
+            else
+            {
+                PlayerPrefs.SetString(key, jsonData);
+                PlayerPrefs.Save();
+                //Debug.Log($"Saved the json data as: {PlayerPrefs.GetString(key)}, jsonData: {jsonData}");
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.Log("<color=red>Error</color> found while saving LeaderBoard list:");
+            Debug.Log(e.Message);
+            Debug.Log(e.Source);
+        }
     }
 
     private void LoadSavedData() //Loads the previous LeaderBoard players from a file

@@ -1,1 +1,4 @@
 *.meta
+SData.cs
+Plugins/
+*.dll

@@ -1,10 +1,10 @@
-This is the git repository for a simple match up game.
+This is the git repository for a match up game.
 
 **General Game Description**: 
 
 The player enters his name and tries to find all 3 matches of all types of cards in the least amount of moves and time possible. Score is calculated by multiplying the number of moves by 5 and adding the elapsed time (in seconds) to it. The player with the lowest score (who completed the game in the least amount of moves and time) stays in the top of the leaderboard.
 
-The cards are generated randomly on each start of the game and leaderboard players are sorted according to their score (from lowest to highest). The game currently has no sound and possibility to save the game-state of a player has been added. The game saves its current state every time the player presses "ESC".
+The cards are generated randomly on each start of the game and leaderboard players are sorted according to their score (from lowest to highest). The game currently has no sound and possibility to save the game-state of a player has been added. The game saves its current state every time the player presses "ESC" and clicks on the "Save" button.
 
 A proper documentation of this project will be written once the project has been completed. Currently the game is only missing sound, functionality to to save both Leaderboard data and game-state data to an online database as well as a general polish to the code.
 
@@ -27,5 +27,7 @@ IDE - **Microsoft Visual Studio**;
 Programming Language - **C#**;
 
 Version Control System - **Git**;
+
+Database System - **MongoDB .Net Driver**
 
 Others - **Youtube Tutorials and Stack Overflow**

@@ -59,6 +59,11 @@ public class Database
 
     //Insert new features below
 
+    internal static async Task<string> LoadLeaderBoard()
+    {
+        //Implement code to load leaderboard file
+    }
+
     #endregion
 
     #region Miscellaneous

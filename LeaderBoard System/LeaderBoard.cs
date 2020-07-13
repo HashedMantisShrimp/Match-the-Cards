@@ -203,8 +203,8 @@ public class LeaderBoard : MonoBehaviour
             {
                 await Database.SaveLeaderBoard(jsonData);
 
-                Debug.Log($"Reached Line after SaveLeaderBoard");
-                PlayerPrefs.SetString(key, jsonData); //Delete this part ltr
+                //Debug.Log($"Reached Line after SaveLeaderBoard");
+                PlayerPrefs.SetString(key, jsonData); //Replace with DB code
                 PlayerPrefs.Save();
             }
             else
@@ -242,7 +242,7 @@ public class LeaderBoard : MonoBehaviour
 
     //---------------------------------------------------------------------------------------------------
 
-    [System.Serializable]
+    [Serializable]
     private class PlayerInfo
     {
         public string _pName;

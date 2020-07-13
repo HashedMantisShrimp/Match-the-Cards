@@ -13,11 +13,7 @@ public class Begin : MonoBehaviour
     void Start()
     {
         shake = FindObjectOfType<CameraShake>();
-
-        if (!Database.connectedToServer)
-        {
-            Database db = new Database();
-        }
+        Database.GetInstance();
         //Database.TestConnection();
     }
 

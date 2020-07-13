@@ -41,12 +41,14 @@ public class Database
     }
     #endregion
 
+    #region LeaderBoard
     internal static async Task SaveLeaderBoard(string playerListJSON)
     {
         var data = BsonDocument.Parse(playerListJSON);
 
         var filter = Builders<LeaderBoardSchema>.Filter.Eq("_id", lbDocID);
         var update = Builders<LeaderBoardSchema>.Update.Set("list", data);
+
         var options = new UpdateOptions { IsUpsert = true };
 
         UpdateResult result = await lbCollection.UpdateOneAsync(filter, update, options);
@@ -54,6 +56,12 @@ public class Database
         Debug.Log($"<color=yellow> Operation {nameof(lbCollection.UpdateOneAsync)}()</color> returned result: {result}");
         Debug.Log($"<color=yellow>{nameof(SaveLeaderBoard)}</color> called. {nameof(playerListJSON)} updated & saved.");
     }
+
+    //Insert new features below
+
+    #endregion
+
+    #region Miscellaneous
 
     internal static async Task TestConnection()
     {
@@ -111,4 +119,5 @@ public class Database
         Debug.Log($"<color=red>{nameof(GetDBNames)}</color> Returning null. No Dbs found.");
         return null;
     }
+    #endregion
 }

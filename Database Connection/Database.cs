@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using MongoDB.Driver;
+using MongoDB.Driver.Core;
 using MongoDB.Bson;
 using UnityEngine;
 //TODO: Find way to install mongodb.legacy.dll & DotEnv dll/plugin files
@@ -18,7 +19,7 @@ public class Database
     private static string lbColl = "leaderboard";
     private static string gameStateColl = "gamestate";
     private static IMongoDatabase db;
-    private static IMongoCollection<LeaderBoardSchema> lbCollection; //TODO: Create a Schema/Model script for collections
+    private static IMongoCollection<LeaderBoardSchema> lbCollection; 
     private static IMongoCollection<BsonDocument> gameStateCollection;
     private static string remoteDB = $"mongodb+srv://{dbUser}:{dbPass}@{dbCluster}.mongodb.net/test?retryWrites=true&w=majority";
     private static string localDB = $"mongodb://127.0.0.1:{dbLPort}";

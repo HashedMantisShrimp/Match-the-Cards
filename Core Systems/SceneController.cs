@@ -64,6 +64,7 @@ public class SceneController : MonoBehaviour
             DeactivateCards(true);
             leaderBoardButton.SetActive(false);
             resetLeaderBoard.SetActive(false);
+            Database.LoadLeaderBoardData();//TODO: Delete this later, implement it in the proper place
         }
         else
         {

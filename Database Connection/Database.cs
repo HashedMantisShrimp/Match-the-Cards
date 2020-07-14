@@ -22,6 +22,7 @@ public class Database
     private static IMongoCollection<BsonDocument> gameStateCollection;
     private static string remoteDB = $"mongodb+srv://{dbUser}:{dbPass}@{dbCluster}.mongodb.net/test?retryWrites=true&w=majority";
     private static string localDB = $"mongodb://127.0.0.1:{dbLPort}";
+    private static TimeSpan timeOut = new TimeSpan(0,0,3);
 
     #region Init Functions
     static MongoClient newClient = new MongoClient(localDB);
@@ -46,12 +47,11 @@ public class Database
     {
         var data = BsonDocument.Parse(playerListJSON);
 
-        var filter = Builders<LeaderBoardSchema>.Filter.Eq("_id", lbDocID);
-        var update = Builders<LeaderBoardSchema>.Update.Set("list", data);
+        var queryFilter = Builders<LeaderBoardSchema>.Filter.Eq("_id", lbDocID);
+        var queryUpdate = Builders<LeaderBoardSchema>.Update.Set("list", data);
+        var queryOptions = new UpdateOptions { IsUpsert = true };
 
-        var options = new UpdateOptions { IsUpsert = true };
-
-        UpdateResult result = await lbCollection.UpdateOneAsync(filter, update, options);
+        UpdateResult result = await lbCollection.UpdateOneAsync(queryFilter, queryUpdate, queryOptions);
 
         Debug.Log($"<color=yellow> Operation {nameof(lbCollection.UpdateOneAsync)}()</color> returned result: {result}");
         Debug.Log($"<color=yellow>{nameof(SaveLeaderBoard)}</color> called. {nameof(playerListJSON)} updated & saved.");
@@ -59,10 +59,58 @@ public class Database
 
     //Insert new features below
 
-    internal static async Task<string> LoadLeaderBoard()
+    internal static async Task<string> LoadLeaderBoardData()
     {
-        //Implement code to load leaderboard file
-        //Create Trello for Match The Cards, set a minimum scope for the project and a definite MVP to deploy
+        try
+        {
+            var JSONdata = string.Empty;
+
+            if (await IsDocumentPresent(lbDocID, lbCollection))
+            {
+                BsonDocument docFound = null;
+                var newProjection = Builders<LeaderBoardSchema>.Projection.Exclude(x=> x._id);
+                var filter = Builders<LeaderBoardSchema>.Filter.Eq("_id", lbDocID);
+                var options = new FindOptions<LeaderBoardSchema, BsonDocument>
+                {
+                    MaxAwaitTime = timeOut,
+                    Limit = 1,
+                    Projection = newProjection,
+                };
+
+                
+
+                Debug.Log($"Document found: ");
+
+                using (IAsyncCursor<BsonDocument> cursor = await lbCollection.FindAsync(filter, options))
+                {
+                    while (await cursor.MoveNextAsync())
+                    {
+                        IEnumerable<BsonDocument> batch = cursor.Current;
+
+                        foreach (BsonDocument document in batch)
+                        {
+                            docFound = document;
+                            Debug.Log($"{document}");
+                        }
+                    }
+                }
+
+
+                Debug.Log($"Retrieved data: {docFound}, {nameof(JSONdata)}: {JSONdata}");
+            }
+            else
+            {
+                Debug.Log($"<color=red>{nameof(IsDocumentPresent)}()</color> found no document with ID:{lbDocID}, returning empty string");
+            }
+
+            return JSONdata;
+        }
+        catch (Exception e)
+        {
+            Debug.Log($"Error found: {e}");
+        }
+
+        Debug.Log($"<color=red> Error occured</color>, returning empty string for {nameof(LoadLeaderBoardData)}()");
         return string.Empty;
     }
 
@@ -83,21 +131,36 @@ public class Database
         }
     }
     
-    private static async Task<bool> IsDocumentPresent(string _id, IMongoCollection<BsonDocument> collection)
+    private static async Task<bool> IsDocumentPresent(string _id, IMongoCollection<LeaderBoardSchema> collection)//TODO: Rethink this method, there might be no need to get the exact doc
     {
-        var docType = FilterDefinition<BsonDocument>.Empty;
+        LeaderBoardSchema docFound = null;
+        var docType = FilterDefinition<LeaderBoardSchema>.Empty;
+        var countOptions = new CountOptions { MaxTime = timeOut};
+        var newProjection = Builders<LeaderBoardSchema>.Projection.Exclude(x => x.list);
+        var searchOptions = new FindOptions<LeaderBoardSchema> { Limit = 1, MaxAwaitTime = timeOut, Projection = newProjection };
+        var searchFilter = Builders<LeaderBoardSchema>.Filter.Eq("_id", _id);
 
-        var docIDFilter = new BsonDocument()
+
+        if (await collection.CountDocumentsAsync(docType, countOptions) > 0) 
         {
-            {"_id", _id }
-        };
+            
+            using (IAsyncCursor<LeaderBoardSchema> cursor = await collection.FindAsync(searchFilter, searchOptions))
+            {
+                while (await cursor.MoveNextAsync())
+                {
+                    IEnumerable<LeaderBoardSchema> batch = cursor.Current;
 
+                    foreach (LeaderBoardSchema document in batch)
+                    {
+                        docFound = document;
+                        Debug.Log($"isDocPresent: {document}");
+                    }
+                }
+            }
 
-        if (await collection.CountDocumentsAsync(docType) > 0)
-        {
-            var docfound = await collection.FindAsync(docIDFilter);
+            Debug.Log($"<Color=blue>Attention</color> docFound {docFound}");
 
-            return (docfound != null) ? true: false;
+            return (docFound != null) ? true: false;
         }
 
         Debug.Log($"<Color=red>Attention</color> Collection {collection.ToString()} is empty. Returning false.");

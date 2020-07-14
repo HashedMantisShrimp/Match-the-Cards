@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using MongoDB.Driver;
-using MongoDB.Driver.Core;
 using MongoDB.Bson;
 using UnityEngine;
 //TODO: Find way to install mongodb.legacy.dll & DotEnv dll/plugin files

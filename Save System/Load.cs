@@ -11,7 +11,7 @@ public class Load : MonoBehaviour
     private string playerName;
     private string saveFileName;
     private string saveKey;
-    [SerializeField] private GameData gameData;
+    private GameData gameData;
 
     private void Awake()
     {
@@ -30,7 +30,7 @@ public class Load : MonoBehaviour
             if (IsSaveDataPresent(playerName))
             {
                 BinaryFormatter bf = new BinaryFormatter();
-                FileStream file = File.Open(Application.persistentDataPath + $"/{saveFileName}", FileMode.Open); //find a way to check if file was found
+                FileStream file = File.Open(Application.persistentDataPath + $"/{saveFileName}", FileMode.Open); //TODO: Find a way to check if file was found
                 saveData = (Data)bf.Deserialize(file);
                 saveDataIsPresent = true;
                 Debug.Log($"<color=yellow>Loaded Data</color> - Player: {saveData.playerName}, Number of moves: {saveData.moves}, matches: {saveData.matches}, Time: {saveData.time}");
@@ -67,6 +67,7 @@ public class Load : MonoBehaviour
 
     private void AssignFields()
     {
+        gameData = GameData.GetInstance();
         playerName = PlayerPrefs.GetString("playerName");
         playerName = (string.IsNullOrEmpty(playerName) || string.IsNullOrWhiteSpace(playerName)) ? "John Doe" : playerName;
         saveFormat = GameData.saveFormat;

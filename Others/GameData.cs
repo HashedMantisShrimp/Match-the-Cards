@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class GameData : MonoBehaviour
-{// Make class and/or varibales static?
+public class GameData
+{
 
     internal const string saveFormat = "gameSave.save";
     internal const int totalMatches = 4;
@@ -15,8 +15,9 @@ public class GameData : MonoBehaviour
     private int currentMatches;
     private int[] idArray;
     private List<MainCard> cardList = new List<MainCard>();
+    private static string LeaderBoardJSON = string.Empty;
 
-    private void Awake()
+    private GameData()
     {
         AssignInitialValues();
     }
@@ -27,11 +28,24 @@ public class GameData : MonoBehaviour
         playerName = (string.IsNullOrEmpty(playerName) || string.IsNullOrWhiteSpace(playerName)) ? "John Doe" : playerName;
     }
 
+    private static GameData instance = new GameData();
+
+    internal static GameData GetInstance()
+    {
+        return instance;
+    }
+
     //---------------------------------------------------------------------------------------------------
 
     #region Internal Functions
 
     #region Set Functions
+
+    internal static void SetLeaderBoardJSON(string JSONdata)
+    {
+        LeaderBoardJSON = JSONdata;
+        Debug.Log($"GameData {nameof(LeaderBoardJSON)} = {LeaderBoardJSON}");
+    }
 
     internal void SetSaveDataPresent(bool isDataPresent)
     {
@@ -70,6 +84,11 @@ public class GameData : MonoBehaviour
     #endregion
 
     #region Get Functions
+
+    internal string GetLeaderBoardJSON()
+    {
+        return LeaderBoardJSON;
+    }
 
     internal bool GetSaveDataPresent()
     {

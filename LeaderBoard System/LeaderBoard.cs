@@ -12,12 +12,13 @@ public class LeaderBoard : MonoBehaviour
     private TextMesh timeObject;
 
     internal string key { get; private set; } = "LeaderBoard";
+    private ListOfPlayers dbLeaderBoardData = new ListOfPlayers();
     private string playerName;
     private int score;
     private string time;
     private Dictionary<string, PlayerInfo> leaderBoardPlayers = new Dictionary<string, PlayerInfo>();
     private List<GameObject> leaderBoardObject = new List<GameObject>();
-    [SerializeField] private GameData gameData;
+    private GameData gameData;
     [SerializeField] private GameObject leaderBoardItem;
     #endregion
 
@@ -25,6 +26,7 @@ public class LeaderBoard : MonoBehaviour
 
     void Awake()
     {
+        gameData = GameData.GetInstance(); //TODO: This line of code might be unnecessary
         LoadSavedData();
     }
 
@@ -186,7 +188,7 @@ public class LeaderBoard : MonoBehaviour
         timeObject.text = data._time;
     }
     
-    private async Task SaveInfo() //Saves the current LeaderBoard players into a file
+    private async Task SaveInfo() //Saves the current LeaderBoard players into a JSON string
     {
         try
         {
@@ -202,13 +204,11 @@ public class LeaderBoard : MonoBehaviour
             if (await Internet.CheckInternetConnectivity())
             {
                 await Database.SaveLeaderBoard(jsonData);
-
-                //Debug.Log($"Reached Line after SaveLeaderBoard");
-                PlayerPrefs.SetString(key, jsonData); //Replace with DB code
-                PlayerPrefs.Save();
+                Debug.Log($"Internet connection <color=blue>found</color>, Saved {nameof(LeaderBoard)} data to db.");
             }
             else
             {
+                Debug.Log($"Internet connection <color=blue>NOT found</color>, Saved {nameof(LeaderBoard)} data to PlayerPrefs.");
                 PlayerPrefs.SetString(key, jsonData);
                 PlayerPrefs.Save();
                 //Debug.Log($"Saved the json data as: {PlayerPrefs.GetString(key)}, jsonData: {jsonData}");
@@ -222,25 +222,59 @@ public class LeaderBoard : MonoBehaviour
         }
     }
 
-    private void LoadSavedData() //Loads the previous LeaderBoard players from a file
+    private void GetDataFromDB() //Gets the JSON leaderboard string loaded from db
+    {
+        string JSONData = gameData.GetLeaderBoardJSON();
+
+        if (!string.IsNullOrEmpty(JSONData) && !string.IsNullOrWhiteSpace(JSONData))
+        {
+            dbLeaderBoardData = JsonUtility.FromJson<ListOfPlayers>(JSONData);
+            Debug.Log($"{nameof(dbLeaderBoardData)} will be set to <color=blue>{JSONData}</color>");
+        }
+        else
+        {
+            dbLeaderBoardData = null;
+            Debug.Log($"{nameof(dbLeaderBoardData)} will be set to <color=red>null</color>");
+        }
+        //Debug.Log($"{nameof(JSONData)}: {JSONData}.");
+    }
+
+    private void LoadSavedData() //Loads the previous LeaderBoard players from JSON string
     {
         if (leaderBoardObject.Count == 0)
         {
-            string jsonData = PlayerPrefs.GetString(key);
-            if (!string.IsNullOrEmpty(jsonData) && !string.IsNullOrWhiteSpace(jsonData))
+            GetDataFromDB();
+
+            if (dbLeaderBoardData == null)
             {
-                ListOfPlayers savedData = JsonUtility.FromJson<ListOfPlayers>(jsonData);
-                CreateNewPlayer(savedData.leaderBList);
+                string jsonData = PlayerPrefs.GetString(key);
+                if (!string.IsNullOrEmpty(jsonData) && !string.IsNullOrWhiteSpace(jsonData))
+                {
+                    Debug.Log($"{nameof(dbLeaderBoardData)} <color=blue>is null</color>. Loading & building LeaderBoard data from PlayerPrefs");
+
+                    ListOfPlayers savedData = JsonUtility.FromJson<ListOfPlayers>(jsonData);
+                    CreateNewPlayer(savedData.leaderBList);
+                    SortPositions();
+                    AlignLeaderBoardItems();
+                    //Debug.Log($"Loaded Json data: {jsonData}");
+                }
+            }
+            else
+            {
+                Debug.Log($"{nameof(dbLeaderBoardData)} <color=blue>is NOT null</color>. Building LeaderBoard from db Data");
+
+                CreateNewPlayer(dbLeaderBoardData.leaderBList);
                 SortPositions();
                 AlignLeaderBoardItems();
-                //Debug.Log($"Loaded Json data: {jsonData}");
-                //Debug.Log("align LeaderBoard Items called");
             }
+            
         }
     }
     #endregion
 
     //---------------------------------------------------------------------------------------------------
+
+    #region Extra Classes
 
     [Serializable]
     private class PlayerInfo
@@ -254,4 +288,5 @@ public class LeaderBoard : MonoBehaviour
     {
         public List<PlayerInfo> leaderBList;
     }
+    #endregion
 }

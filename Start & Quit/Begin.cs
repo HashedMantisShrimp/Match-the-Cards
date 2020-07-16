@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
@@ -6,15 +7,21 @@ using UnityEngine.SceneManagement;
 public class Begin : MonoBehaviour
 {
     private CameraShake shake;
+    private GameData gameData;
     [SerializeField] private Text playerName;
     [SerializeField] private GameObject errorMessage;
 
-
-    void Start()
+    private void Awake()
     {
         shake = FindObjectOfType<CameraShake>();
         Database.GetInstance();
+        GameData.GetInstance();
         //Database.TestConnection();
+    }
+
+    void Start()
+    {
+        GetLeaderBoardData();
     }
 
     private void Update()
@@ -24,10 +31,16 @@ public class Begin : MonoBehaviour
             CheckInput();
         }
     }
-
+    
     //---------------------------------------------------------------------------------------------------
 
     #region Private Functions
+
+    private async Task GetLeaderBoardData()
+    {
+        //Debug.Log($"{nameof(gameData.SetLeaderBoardJSON)} was called. leaderboardJSON should be set.");
+        GameData.SetLeaderBoardJSON(await Database.LoadLeaderBoardData());
+    }
 
     private void OnMouseDown()
     {

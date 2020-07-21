@@ -1,12 +1,11 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Networking;
 using System.Threading.Tasks;
 
 public static class Internet
 {
     
-    internal static async Task<bool> CheckInternetConnectivity()
+    internal static async Task<bool> CheckInternetConnectivity()//Checks Internet connection by pinging Google
     {
         UnityWebRequest newRequest = new UnityWebRequest("https://google.com");
         newRequest.timeout = 2;

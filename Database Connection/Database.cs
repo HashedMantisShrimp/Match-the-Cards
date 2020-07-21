@@ -18,6 +18,7 @@ public class Database
     private const string dbLPort = SData.DB_LOCAL_PORT;
     private const string lbDocID = "lb00";
     private static string lbColl = "leaderboard";
+    private static string lbCollTest = "leaderboard_copy";//TODO: Temporary variable, delete it later
     private static string gameStateColl = "gamestate";
     private static IMongoDatabase db;
     private static IMongoCollection<LeaderBoardSchema> lbCollection; 
@@ -51,16 +52,16 @@ public class Database
 
     #region LeaderBoard Functions
 
-    internal static async Task SaveLeaderBoard(string playerListJSON)
+    internal static async Task SaveLeaderBoard(string playerListJSON)//Saves leaderboard data into db 
     {
         try
         {
             var data = BsonDocument.Parse(playerListJSON);
 
             var queryFilter = Builders<LeaderBoardSchema>.Filter.Eq("_id", lbDocID);
-            var queryUpdate = Builders<LeaderBoardSchema>.Update.Set("list", data);
+            var queryUpdate = Builders<LeaderBoardSchema>.Update.Set("leaderBList", data.GetValue("leaderBList"));
             var queryOptions = new UpdateOptions { IsUpsert = true };
-
+            
             UpdateResult result = await lbCollection.UpdateOneAsync(queryFilter, queryUpdate, queryOptions);
 
             Debug.Log($"<color=yellow> Operation {nameof(lbCollection.UpdateOneAsync)}()</color> returned result: {result}");
@@ -74,7 +75,7 @@ public class Database
         }
     }
 
-    internal static async Task<string> LoadLeaderBoardData()
+    internal static async Task<string> LoadLeaderBoardData()//Loads leaderboard data from db, returns empty string if error occurs or if collection is empty
     {
         try
         {
@@ -93,7 +94,7 @@ public class Database
                 };
 
                 using (IAsyncCursor<BsonDocument> cursor = await lbCollection.FindAsync(filter, options))
-                {
+                {//TODO: adjust code for case where there is no lbDocID but there are other docs
                     while (await cursor.MoveNextAsync())
                     {
                         IEnumerable<BsonDocument> batch = cursor.Current;
@@ -105,10 +106,8 @@ public class Database
                         }
                     }
                 }
-                var list = docFound.GetValue("list");
-
-                //Debug.Log($"list: {list}");
-                JSONdata = list.ToJson();
+                
+                JSONdata = docFound.ToJson();
             }
             else
             {

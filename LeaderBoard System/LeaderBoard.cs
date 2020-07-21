@@ -167,12 +167,21 @@ public class LeaderBoard : MonoBehaviour
 
             if (leaderBoardObject.Count > 5) //Removes players below the 5th position
             {
-                for (int i = 5; i < leaderBoardObject.Count; i++)
+                var indexToBeRemoved = new List<int>();
+
+                for (int i = 5; i < leaderBoardObject.Count; i++)//Deactivates & Destroys gameObjects below the 5h position
                 {
                     string name = leaderBoardObject[i].transform.Find("PName").GetComponent<TextMesh>().text;
-                    leaderBoardObject[i].SetActive(false);
+                    Destroy(leaderBoardObject[i]);
+                    indexToBeRemoved.Add(i);
                     leaderBoardPlayers.Remove(name);
                 }
+
+                for (int i=0; i<indexToBeRemoved.Count; i++)//Removes players below the 5h position from leaderBoardObject list
+                {
+                    leaderBoardObject.RemoveAt(5);
+                }
+                indexToBeRemoved.Clear();
             }
         }
     }

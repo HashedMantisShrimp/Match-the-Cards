@@ -21,7 +21,7 @@ public class Begin : MonoBehaviour
 
     void Start()
     {
-        GetLeaderBoardData();
+        GetLeaderBoardData();//TODO: Test Internet and/or db connection before attempting to fetch data
     }
 
     private void Update()
@@ -36,7 +36,7 @@ public class Begin : MonoBehaviour
 
     #region Private Functions
 
-    private async Task GetLeaderBoardData()
+    private async Task GetLeaderBoardData()// Attempts to fetch LeaderBoard data from db
     {
         //Debug.Log($"{nameof(gameData.SetLeaderBoardJSON)} was called. leaderboardJSON should be set.");
         GameData.SetLeaderBoardJSON(await Database.LoadLeaderBoardData());

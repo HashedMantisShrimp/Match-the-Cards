@@ -54,6 +54,8 @@ public class GameData
 
     #region Internal Functions
 
+    //---------------------------------------------------------------------------------------------------
+        
     #region Set
 
     internal static void SetLeaderBoardJSON(string JSONdata)
@@ -97,6 +99,8 @@ public class GameData
         idArray = _idArray;
     }
     #endregion
+        
+    //---------------------------------------------------------------------------------------------------
 
     #region Get
 
@@ -142,6 +146,8 @@ public class GameData
         return ExcDBLoadLeaderBoard;
     }
     #endregion
+        
+    //------------------------------------------------
 
     #region NonConst Get Functions
 
@@ -193,5 +199,7 @@ public class GameData
 
     #endregion
 
+    //---------------------------------------------------------------------------------------------------
+        
     #endregion
 }

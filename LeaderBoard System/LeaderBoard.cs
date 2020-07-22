@@ -140,11 +140,22 @@ public class LeaderBoard : MonoBehaviour
     {
         foreach (PlayerInfo pScript in playerScripts)
         {
-            GameObject player = Instantiate(leaderBoardItem);
-            AssignValues(player, pScript);
-            player.SetActive(false);
-            leaderBoardObject.Add(player);
-            leaderBoardPlayers.Add(pScript._pName, pScript);
+            if (!leaderBoardPlayers.ContainsKey(pScript._pName))
+            {
+                GameObject player = Instantiate(leaderBoardItem);
+                AssignValues(player, pScript);
+                player.SetActive(false);
+                leaderBoardObject.Add(player);
+                leaderBoardPlayers.Add(pScript._pName, pScript);
+            }
+           /* else
+            {//TODO: When lb is loaded from db, positions are not sorted correctly and wrong data/values are assigned to the players, fix this
+                if (leaderBoardPlayers[playerName]._score > pScript._score)
+                {
+                    leaderBoardPlayers[playerName]._score = pScript._score;
+                    leaderBoardPlayers[playerName]._time = pScript._time;
+                }
+            }*/
         }
     }
 
@@ -201,33 +212,49 @@ public class LeaderBoard : MonoBehaviour
     {
         try
         {
-            List<PlayerInfo> playerScripts = new List<PlayerInfo>();
-            foreach (PlayerInfo item in leaderBoardPlayers.Values)
-            {
-                playerScripts.Add(item);
-            }
-
-            ListOfPlayers playerList = new ListOfPlayers { leaderBList = playerScripts };
-            string jsonData = JsonUtility.ToJson(playerList);
-
             if (await Internet.CheckInternetConnectivity())
             {
-                await Database.SaveLeaderBoard(jsonData);
-                Debug.Log($"Internet connection <color=blue>found</color>, Saved {nameof(LeaderBoard)} data to db.");
+                var dbData = gameData.GetLeaderBoardJSON();
+
+                if (IsStringValid(dbData))//If player loaded leaderboard data from db, then save
+                {
+                    var jsonList = PrepareSaveData();
+                    await Database.SaveLeaderBoard(jsonList);
+                    GameData.SetLeaderBoardJSON(string.Empty);
+                    Debug.Log($"Internet connection <color=blue>found</color>, Saved {nameof(LeaderBoard)} data to db.");
+                }
+                else//If player loaded leaderboard data from local storage, then compare local vs online data and then save
+                {
+                    var onlineDataJSON = await Database.LoadLeaderBoardData();
+
+                    if (IsStringValid(onlineDataJSON))
+                    {
+                        var onlineData = JsonUtility.FromJson<ListOfPlayers>(onlineDataJSON);
+
+                        CreateNewPlayer(onlineData.leaderBList);
+                        SortPositions();
+                        AlignLeaderBoardItems();
+                        var jsonList = PrepareSaveData();
+                        await Database.SaveLeaderBoard(jsonList);
+                    }
+
+                }
+                
             }
             else
             {
+                var jsonList = PrepareSaveData();
                 Debug.Log($"Internet connection <color=blue>NOT found</color>, Saved {nameof(LeaderBoard)} data to PlayerPrefs.");
-                PlayerPrefs.SetString(key, jsonData);
+                PlayerPrefs.SetString(key, jsonList);
                 PlayerPrefs.Save();
-                //Debug.Log($"Saved the json data as: {PlayerPrefs.GetString(key)}, jsonData: {jsonData}");
+                //Debug.Log($"Saved the json data as: {PlayerPrefs.GetString(key)}, jsonData: {jsonList}");
             }
         }
         catch (Exception e)
         {
             Debug.Log("<color=red>Error</color> found while saving LeaderBoard list:");
-            Debug.Log(e.Message);
-            Debug.Log(e.Source);
+            Debug.Log($"Error message: {e.Message}");
+            Debug.Log($"Code trace: {e.StackTrace}");
         }
     }
 
@@ -235,7 +262,7 @@ public class LeaderBoard : MonoBehaviour
     {
         string JSONData = gameData.GetLeaderBoardJSON();
 
-        if (!string.IsNullOrEmpty(JSONData) && !string.IsNullOrWhiteSpace(JSONData))
+        if (IsStringValid(JSONData))
         {
             dbLeaderBoardData = JsonUtility.FromJson<ListOfPlayers>(JSONData);
             Debug.Log($"{nameof(dbLeaderBoardData)} will be set to <color=blue>{JSONData}</color>");
@@ -257,7 +284,7 @@ public class LeaderBoard : MonoBehaviour
             if (dbLeaderBoardData == null)
             {
                 string jsonData = PlayerPrefs.GetString(key);
-                if (!string.IsNullOrEmpty(jsonData) && !string.IsNullOrWhiteSpace(jsonData))
+                if (IsStringValid(jsonData))
                 {
                     Debug.Log($"{nameof(dbLeaderBoardData)} <color=blue>is null</color>. Loading & building LeaderBoard data from PlayerPrefs");
 
@@ -278,6 +305,32 @@ public class LeaderBoard : MonoBehaviour
             }
             
         }
+    }
+
+    //TODO: Create Function to handle CreateNewPlayer, SortPositions & AlignLeaderBoardItems in one place, think about appropriate return value (for unit testing)
+
+    private string PrepareSaveData()
+    {
+        List<PlayerInfo> playerScripts = new List<PlayerInfo>();
+        foreach (PlayerInfo item in leaderBoardPlayers.Values)
+        {
+            playerScripts.Add(item);
+        }
+
+        ListOfPlayers playerList = new ListOfPlayers { leaderBList = playerScripts };
+        string jsonData = JsonUtility.ToJson(playerList);
+
+        return jsonData;
+    }
+
+    private bool IsStringValid(string stringToCheck)
+    {
+        if (!string.IsNullOrEmpty(stringToCheck) && !string.IsNullOrWhiteSpace(stringToCheck))
+        {
+            return true;
+        }
+
+        return false;
     }
     #endregion
 

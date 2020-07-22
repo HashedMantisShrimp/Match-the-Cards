@@ -37,7 +37,7 @@ public class Database
     private Database()
     {
         db = newClient.GetDatabase(dbName);
-        lbCollection = db.GetCollection<LeaderBoardSchema>(lbColl);
+        lbCollection = db.GetCollection<LeaderBoardSchema>(lbCollTest);
         gameStateCollection = db.GetCollection<BsonDocument>(gameStateColl);
         connectedToServer = true;
     }
@@ -61,7 +61,7 @@ public class Database
             var queryFilter = Builders<LeaderBoardSchema>.Filter.Eq("_id", lbDocID);
             var queryUpdate = Builders<LeaderBoardSchema>.Update.Set("leaderBList", data.GetValue("leaderBList"));
             var queryOptions = new UpdateOptions { IsUpsert = true };
-            
+
             UpdateResult result = await lbCollection.UpdateOneAsync(queryFilter, queryUpdate, queryOptions);
 
             Debug.Log($"<color=yellow> Operation {nameof(lbCollection.UpdateOneAsync)}()</color> returned result: {result}");
@@ -113,7 +113,7 @@ public class Database
             {
                 Debug.Log($"<color=red>Collection {nameof(lbCollection)}</color> is empty.");
             }
-
+            
             return JSONdata;
         }
         catch (Exception e)

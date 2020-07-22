@@ -8,7 +8,7 @@ public static class Internet
     internal static async Task<bool> CheckInternetConnectivity()//Checks Internet connection by pinging Google
     {
         UnityWebRequest newRequest = new UnityWebRequest("https://google.com");
-        newRequest.timeout = 2;
+        newRequest.timeout = 4;
 
         newRequest.SendWebRequest();
 
@@ -18,7 +18,7 @@ public static class Internet
         }
 
         if (newRequest.isNetworkError)
-            Debug.Log($"<color=red>Error</color> found while checking connection: {newRequest.error}.");
+            Debug.Log($"<color=red>Error</color> found while checking connection: {newRequest.error}.");//TODO: Implement Try Catch Block?
 
         Debug.Log($"{nameof(newRequest)} connection: {!newRequest.isNetworkError}");
         return !newRequest.isNetworkError;

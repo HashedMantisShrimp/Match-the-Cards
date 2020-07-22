@@ -38,8 +38,10 @@ public class Begin : MonoBehaviour
 
     private async Task GetLeaderBoardData()// Attempts to fetch LeaderBoard data from db
     {
-        //Debug.Log($"{nameof(gameData.SetLeaderBoardJSON)} was called. leaderboardJSON should be set.");
-        GameData.SetLeaderBoardJSON(await Database.LoadLeaderBoardData());
+        if (await Internet.CheckInternetConnectivity())
+        {
+            GameData.SetLeaderBoardJSON(await Database.LoadLeaderBoardData());
+        }
     }
 
     private void OnMouseDown()

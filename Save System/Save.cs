@@ -87,9 +87,7 @@ public class Save : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.Log($"<color=red>ATTENTION</color> Error found while saving game file: {e}");
-            Debug.Log($"Error message: {e.Message}");
-            Debug.Log($"Code trace: {e.StackTrace}");
+            Misc.HandleException(e, gameData.GetExcSaveData());
         }
         finally
         {
@@ -103,10 +101,10 @@ public class Save : MonoBehaviour
         {
             if (gameData.GetSaveDataPresent())
             {
-                if (string.IsNullOrEmpty(playerName) || string.IsNullOrWhiteSpace(playerName))
+                if (Misc.IsStringNullOr(playerName))
                     playerName = gameData.GetPlayerName();
 
-                if (string.IsNullOrEmpty(saveFileName) || string.IsNullOrWhiteSpace(saveFileName))
+                if (Misc.IsStringNullOr(saveFileName))
                     saveFileName = playerName + GameData.saveFormat;
 
                 PlayerPrefs.DeleteKey(saveKey);
@@ -121,9 +119,8 @@ public class Save : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.Log($"Exception was found while deleting file: {e.Message}");
+            Misc.HandleException(e, gameData.GetExcDeleteSave());
         }
-        
     }
 }
 

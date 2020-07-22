@@ -47,7 +47,7 @@ public class Load : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.Log($"<color=red>ATTENTION</color> Error found while loading save file: {e.Message}");
+            Misc.HandleException(e, gameData.GetExcLoadSavedGame());
         }
     }
 
@@ -69,7 +69,7 @@ public class Load : MonoBehaviour
     {
         gameData = GameData.GetInstance();
         playerName = PlayerPrefs.GetString("playerName");
-        playerName = (string.IsNullOrEmpty(playerName) || string.IsNullOrWhiteSpace(playerName)) ? "John Doe" : playerName;
+        playerName = Misc.IsStringValid(playerName) ? "John Doe" : playerName;
         saveFormat = GameData.saveFormat;
         saveData = new Data();
         saveKey = $"save{playerName}";

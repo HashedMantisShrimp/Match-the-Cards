@@ -21,7 +21,7 @@ public class Begin : MonoBehaviour
 
     void Start()
     {
-        GetLeaderBoardData();//TODO: Test Internet and/or db connection before attempting to fetch data
+        GetLeaderBoardData();
     }
 
     private void Update()
@@ -51,7 +51,7 @@ public class Begin : MonoBehaviour
 
     private void CheckInput() //checks if player actually wrote something
     {
-        if (!string.IsNullOrEmpty(playerName.text) && !string.IsNullOrWhiteSpace(playerName.text))
+        if (Misc.IsStringValid(playerName.text))
         {
             SceneManager.LoadScene(1);
         }

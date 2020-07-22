@@ -44,14 +44,12 @@ public class LeaderBoard : MonoBehaviour
         playerName = gameData.GetPlayerName();
         score = gameData.GetScore();
         time = _time;
-        CreateNewPlayer();
-        SortPositions();
-        AlignLeaderBoardItems();
+        SortingAlgorithm();
         SaveInfo();
     }
 
     internal void ResetLists() //Resets local LeaderBoard list
-    {
+    {//TODO: Delete local Player Prefs as well?
         foreach (GameObject player in leaderBoardObject)
         {
             player.SetActive(false);
@@ -216,7 +214,7 @@ public class LeaderBoard : MonoBehaviour
             {
                 var dbData = gameData.GetLeaderBoardJSON();
 
-                if (IsStringValid(dbData))//If player loaded leaderboard data from db, then save
+                if (Misc.IsStringValid(dbData))//If player loaded leaderboard data from db, then save
                 {
                     var jsonList = PrepareSaveData();
                     await Database.SaveLeaderBoard(jsonList);
@@ -227,13 +225,11 @@ public class LeaderBoard : MonoBehaviour
                 {
                     var onlineDataJSON = await Database.LoadLeaderBoardData();
 
-                    if (IsStringValid(onlineDataJSON))
+                    if (Misc.IsStringValid(onlineDataJSON))
                     {
                         var onlineData = JsonUtility.FromJson<ListOfPlayers>(onlineDataJSON);
 
-                        CreateNewPlayer(onlineData.leaderBList);
-                        SortPositions();
-                        AlignLeaderBoardItems();
+                        SortingAlgorithm(onlineData.leaderBList);
                         var jsonList = PrepareSaveData();
                         await Database.SaveLeaderBoard(jsonList);
                     }
@@ -250,9 +246,7 @@ public class LeaderBoard : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.Log("<color=red>Error</color> found while saving LeaderBoard list:");//TODO: Create a method to handle Exception logs
-            Debug.Log($"Error message: {e.Message}");
-            Debug.Log($"Code trace: {e.StackTrace}");
+            Misc.HandleException(e, gameData.GetExcLeaderBoardSaveInfo());
         }
     }
 
@@ -260,7 +254,7 @@ public class LeaderBoard : MonoBehaviour
     {
         string JSONData = gameData.GetLeaderBoardJSON();
 
-        if (IsStringValid(JSONData))
+        if (Misc.IsStringValid(JSONData))
         {
             dbLeaderBoardData = JsonUtility.FromJson<ListOfPlayers>(JSONData);
             Debug.Log($"{nameof(dbLeaderBoardData)} will be set to <color=blue>{JSONData}</color>");
@@ -284,36 +278,27 @@ public class LeaderBoard : MonoBehaviour
                 if (dbLeaderBoardData == null)
                 {
                     string jsonData = PlayerPrefs.GetString(key);
-                    if (IsStringValid(jsonData))
+                    if (Misc.IsStringValid(jsonData))
                     {
                         Debug.Log($"{nameof(dbLeaderBoardData)} <color=blue>is null</color>. Loading & building LeaderBoard data from PlayerPrefs");
 
                         ListOfPlayers savedData = JsonUtility.FromJson<ListOfPlayers>(jsonData);
-                        CreateNewPlayer(savedData.leaderBList);
-                        SortPositions();
-                        AlignLeaderBoardItems();
+                        SortingAlgorithm(savedData.leaderBList);
                         Debug.Log($"Loaded PlayerPrefs data: {jsonData}");
                     }
                 }
                 else
                 {
                     Debug.Log($"{nameof(dbLeaderBoardData)} <color=blue>is NOT null</color>. Building LeaderBoard from db Data");
-
-                    CreateNewPlayer(dbLeaderBoardData.leaderBList);
-                    SortPositions();
-                    AlignLeaderBoardItems();
+                    SortingAlgorithm(dbLeaderBoardData.leaderBList);
                 }
             }
         }
         catch(Exception e)
         {
-            Debug.Log("<color=red>Error</color> found while saving LeaderBoard list:");
-            Debug.Log($"Error message: {e.Message}");
-            Debug.Log($"Code trace: {e.StackTrace}");
+            Misc.HandleException(e, gameData.GetExcLeaderBoardLoadSave());
         }
     }
-
-    //TODO: Create Function to handle CreateNewPlayer, SortPositions & AlignLeaderBoardItems in one place, think about appropriate return value (for unit testing)
 
     private string PrepareSaveData()//Prepares and returns json data to be saved
     {
@@ -325,16 +310,22 @@ public class LeaderBoard : MonoBehaviour
 
         ListOfPlayers playerList = new ListOfPlayers { leaderBList = playerScripts };
         string jsonData = JsonUtility.ToJson(playerList);
-
+        
         return jsonData;
     }
 
-    private bool IsStringValid(string stringToCheck)//Checks if string passed is valid
+    private void SortingAlgorithm(List<PlayerInfo> lbList)//Handles the creation, sorting and alignment porcess w/ leaderboard list
     {
-        if (!string.IsNullOrEmpty(stringToCheck) && !string.IsNullOrWhiteSpace(stringToCheck))
-            return true;
+        CreateNewPlayer(lbList);
+        SortPositions();
+        AlignLeaderBoardItems();
+    }
 
-        return false;
+    private void SortingAlgorithm()//Handles the creation, sorting and alignment porcess w/o leaderboard list
+    {
+        CreateNewPlayer();
+        SortPositions();
+        AlignLeaderBoardItems();
     }
     #endregion
 

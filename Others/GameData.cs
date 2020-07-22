@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class GameData
 {
+    #region Variables
 
     internal const string saveFormat = "gameSave.save";
     internal const int totalMatches = 4;
@@ -16,6 +17,19 @@ public class GameData
     private int[] idArray;
     private List<MainCard> cardList = new List<MainCard>();
     private static string LeaderBoardJSON = string.Empty;
+    private const string ExcLeaderBoardSaveInfo = "<color=red>Error</color> found while saving LeaderBoard list:";
+    private const string ExcLeaderBoardLoadSave = "<color=red>Error</color> found while loading LeaderBoard list:";
+    private const string ExcInternetConnectivity = "<color=red>Error</color> found while checking Internet Connection:";
+    private const string ExcLoadSavedGame = "<color=red>Error</color> found while loading save file:";
+    private const string ExcDeleteSave = "<color=red>Error</color> found while deleting save file:";
+    private const string ExcSaveData = "<color=red>Error</color> found while saving game file:";
+    private const string ExcDBSaveLeaderBoard = "<color=red>Error</color> found while saving leaderboard data:";
+    private const string ExcDBLoadLeaderBoard = "<color=red>Error</color> found while loading leaderboard data:";
+    #endregion
+
+    //---------------------------------------------------------------------------------------------------
+
+    #region Init Functions
 
     private GameData()
     {
@@ -34,12 +48,13 @@ public class GameData
     {
         return instance;
     }
+    #endregion
 
     //---------------------------------------------------------------------------------------------------
 
     #region Internal Functions
 
-    #region Set Functions
+    #region Set
 
     internal static void SetLeaderBoardJSON(string JSONdata)
     {
@@ -83,7 +98,52 @@ public class GameData
     }
     #endregion
 
-    #region Get Functions
+    #region Get
+
+    #region Const Get Functions
+
+    internal string GetExcSaveData()
+    {
+        return ExcSaveData;
+    }
+
+    internal string GetExcDeleteSave()
+    {
+        return ExcDeleteSave;
+    }
+
+    internal string GetExcLoadSavedGame()
+    {
+        return ExcLoadSavedGame;
+    }
+
+    internal static string GetExcInternetConnectivity()
+    {
+        return ExcInternetConnectivity;
+    }
+
+    internal string GetExcLeaderBoardLoadSave()
+    {
+        return ExcLeaderBoardLoadSave;
+    }
+
+    internal string GetExcLeaderBoardSaveInfo()
+    {
+        return ExcLeaderBoardSaveInfo;
+    }
+
+    internal static string GetExcDBSaveLeaderBoard()
+    {
+        return ExcDBSaveLeaderBoard;
+    }
+
+    internal static string GetExcDBLoadLeaderBoard()
+    {
+        return ExcDBLoadLeaderBoard;
+    }
+    #endregion
+
+    #region NonConst Get Functions
 
     internal string GetLeaderBoardJSON()
     {
@@ -129,6 +189,8 @@ public class GameData
     {
         return cardList;
     }
+    #endregion
+
     #endregion
 
     #endregion

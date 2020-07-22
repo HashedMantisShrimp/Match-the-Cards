@@ -18,7 +18,7 @@ public class Database
     private const string dbLPort = SData.DB_LOCAL_PORT;
     private const string lbDocID = "lb00";
     private static string lbColl = "leaderboard";
-    private static string lbCollTest = "leaderboard_copy";//TODO: Temporary variable, delete it later
+    private static string lbCollTest = "leaderboard_copy";//Back-up collection, used for testing purposes
     private static string gameStateColl = "gamestate";
     private static IMongoDatabase db;
     private static IMongoCollection<LeaderBoardSchema> lbCollection; 
@@ -37,7 +37,7 @@ public class Database
     private Database()
     {
         db = newClient.GetDatabase(dbName);
-        lbCollection = db.GetCollection<LeaderBoardSchema>(lbCollTest);
+        lbCollection = db.GetCollection<LeaderBoardSchema>(lbColl);
         gameStateCollection = db.GetCollection<BsonDocument>(gameStateColl);
         connectedToServer = true;
     }
@@ -69,9 +69,7 @@ public class Database
         }
         catch (Exception e)
         {
-            Debug.Log($"Error ocurred while saving leaderboard data {e}");
-            Debug.Log($"Error message: {e.Message}");
-            Debug.Log($"Code trace: {e.StackTrace}");
+            Misc.HandleException(e, GameData.GetExcDBSaveLeaderBoard());
         }
     }
 
@@ -118,15 +116,15 @@ public class Database
         }
         catch (Exception e)
         {
-            Debug.Log($"Error ocurred while loading leaderboard data {e}");
-            Debug.Log($"Error message: {e.Message}");
-            Debug.Log($"Code trace: {e.StackTrace}");
+            Misc.HandleException(e, GameData.GetExcDBLoadLeaderBoard());
         }
 
-        Debug.Log($"<color=red> Error occured</color>, returning empty string for {nameof(LoadLeaderBoardData)}()");
+        Debug.Log($"<color=red>ERROR:</color> out of try-catch block, returning empty string for {nameof(LoadLeaderBoardData)}()");
         return string.Empty;
     }
     #endregion
+
+    //Insert Game State saving here
 
     //---------------------------------------------------------------------------------------------------
 

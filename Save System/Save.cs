@@ -139,6 +139,6 @@ public class Data
     public int matches;
     public string playerName;
     public float time;
-    public int[] IDs = new int[12];
+    public int[] IDs = new int[12];//TODO: Make the size dynamic
     public Dictionary<int, CardInfo> cards = new Dictionary<int, CardInfo>();
 }

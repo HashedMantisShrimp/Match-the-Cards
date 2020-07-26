@@ -9,8 +9,7 @@ using UnityEngine;
 public class Database
 {
     #region Variables
-
-    internal static bool connectedToServer { get; private set; } = false; //TODO: If no use is found, delete it
+    
     private const string dbName = SData.DB_NAME; //TODO: Substitute later with actual DotEnv files
     private const string dbUser = SData.DB_USER;
     private const string dbPass = SData.DB_PASS;
@@ -20,32 +19,43 @@ public class Database
     private static string lbColl = "leaderboard";
     private static string lbCollTest = "leaderboard_copy";//Back-up collection, used for testing purposes
     private static string gameStateColl = "gamestate";
+    private static Database instance;
     private static IMongoDatabase db;
     private static IMongoCollection<LeaderBoardSchema> lbCollection; 
     private static IMongoCollection<BsonDocument> gameStateCollection;
     private static string remoteDB = $"mongodb+srv://{dbUser}:{dbPass}@{dbCluster}.mongodb.net/test?retryWrites=true&w=majority";
     private static string localDB = $"mongodb://127.0.0.1:{dbLPort}";
-    private static TimeSpan timeOut = new TimeSpan(0,0,3);
+    private static TimeSpan timeOut = TimeSpan.FromSeconds(2);
     #endregion
 
     //---------------------------------------------------------------------------------------------------
 
     #region Init Functions
-    static MongoClient newClient = new MongoClient(localDB);
-    private static Database instance = new Database();
 
+    static MongoClientSettings settings = new MongoClientSettings()
+    {
+        ConnectTimeout = timeOut,
+        ServerSelectionTimeout = TimeSpan.FromSeconds(1),
+        MaxConnectionPoolSize = 10
+    };
+    
     private Database()
     {
         db = newClient.GetDatabase(dbName);
         lbCollection = db.GetCollection<LeaderBoardSchema>(lbColl);
         gameStateCollection = db.GetCollection<BsonDocument>(gameStateColl);
-        connectedToServer = true;
     }
 
     internal static Database GetInstance()
     {
+        if (instance == null)
+        {
+            instance = new Database();
+        }
         return instance;
     }
+
+    static MongoClient newClient = new MongoClient(remoteDB);
     #endregion
 
     //---------------------------------------------------------------------------------------------------
@@ -78,7 +88,6 @@ public class Database
         try
         {
             var JSONdata = string.Empty;
-
             if (!await IsCollEmpty(lbCollection))
             {
                 BsonDocument docFound = null;

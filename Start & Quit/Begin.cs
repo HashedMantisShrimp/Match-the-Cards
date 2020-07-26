@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 public class Begin : MonoBehaviour
 {
     private CameraShake shake;
-    private GameData gameData;
+    private SoundPlayer soundManager;
     [SerializeField] private Text playerName;
     [SerializeField] private GameObject errorMessage;
 
@@ -21,7 +21,7 @@ public class Begin : MonoBehaviour
 
     void Start()
     {
-        GetLeaderBoardData();
+        StartScript();
     }
 
     private void Update()
@@ -36,6 +36,20 @@ public class Begin : MonoBehaviour
 
     #region Private Functions
 
+    private async Task StartScript()//To be called when Monobehaviour calls Start()
+    {
+        await GetLeaderBoardData();
+        while (GameData.GetSoundManager() == null)
+        {
+            Debug.Log($"GetSoundManager returned null, yielding.");
+            await Task.Yield();
+        }
+
+        Debug.Log($"GetSoundManager is NOT null, proceeding with script.");
+        soundManager = GameData.GetSoundManager();
+        soundManager.PlaySoundClip("Exp", true);
+    }
+    
     private async Task GetLeaderBoardData()// Attempts to fetch LeaderBoard data from db
     {
         if (await Internet.CheckInternetConnectivity())

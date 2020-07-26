@@ -15,6 +15,7 @@ public class GameData
     private int moveCounter;
     private int currentMatches;
     private int[] idArray;
+    private static SoundPlayer soundManager;
     private List<MainCard> cardList = new List<MainCard>();
     private static string LeaderBoardJSON = string.Empty;
     private const string ExcLeaderBoardSaveInfo = "<color=red>Error</color> found while saving LeaderBoard list:";
@@ -38,6 +39,7 @@ public class GameData
 
     private void AssignInitialValues()
     {
+        soundManager = Camera.main.GetComponent<SoundPlayer>();
         playerName = PlayerPrefs.GetString("playerName");
         playerName = (string.IsNullOrEmpty(playerName) || string.IsNullOrWhiteSpace(playerName)) ? "John Doe" : playerName;
     }
@@ -146,10 +148,15 @@ public class GameData
         return ExcDBLoadLeaderBoard;
     }
     #endregion
-        
+
     //------------------------------------------------
 
     #region NonConst Get Functions
+
+    internal static SoundPlayer GetSoundManager()
+    {
+        return soundManager;
+    }
 
     internal string GetLeaderBoardJSON()
     {

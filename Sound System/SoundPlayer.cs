@@ -3,13 +3,17 @@ using System;
 using UnityEngine;
 
 public class SoundPlayer : MonoBehaviour
-{//This Script is suppoed to be assigned to the main camera
+{//This Script should assigned to the main camera
     public Sources[] audioSources;
     public Sound[] sounds;
-    private AudioSource source;
-    private AudioSource mainSource; 
+    private AudioSource source;//Used to assign instances of other sources
+    private AudioSource mainSource;
 
-    
+    void Awake()
+    {
+        DontDestroyOnLoad(gameObject);
+    }
+
     void Start()
     {
         GameObject mainCam = gameObject;

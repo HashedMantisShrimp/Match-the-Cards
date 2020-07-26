@@ -10,7 +10,7 @@ public static class Internet
         try
         {
             UnityWebRequest newRequest = new UnityWebRequest("https://google.com");
-            newRequest.timeout = 4;
+            newRequest.timeout = 3;
 
             newRequest.SendWebRequest();
 
@@ -22,7 +22,7 @@ public static class Internet
             if (newRequest.isNetworkError)
                 Debug.Log($"<color=red>Error</color> found while checking connection: {newRequest.error}.");
 
-            Debug.Log($"{nameof(newRequest)} connection: {!newRequest.isNetworkError}");
+            Debug.Log($"{nameof(Internet)} connection: {!newRequest.isNetworkError}");
             return !newRequest.isNetworkError;
         }
         catch (Exception e)

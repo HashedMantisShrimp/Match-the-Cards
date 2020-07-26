@@ -42,7 +42,7 @@ public class Load : MonoBehaviour
             {
                 saveDataIsPresent = false;
                 gameData.SetSaveDataPresent(saveDataIsPresent);
-                //Debug.Log("Save data is not present");
+                Debug.Log($"Save data is not present. {nameof(playerName)} in {nameof(Load)}.cs: {playerName}");
             }
         }
         catch (Exception e)
@@ -68,8 +68,7 @@ public class Load : MonoBehaviour
     private void AssignFields()
     {
         gameData = GameData.GetInstance();
-        playerName = PlayerPrefs.GetString("playerName");
-        playerName = Misc.IsStringValid(playerName) ? "John Doe" : playerName;
+        playerName = gameData.GetPlayerName();
         saveFormat = GameData.saveFormat;
         saveData = new Data();
         saveKey = $"save{playerName}";

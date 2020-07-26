@@ -258,7 +258,6 @@ public class SceneController : MonoBehaviour
                 Debug.Log($"Congratulations You Won! Time: {time}");
                 StartCoroutine(Congrats());
                 gameOver = true;
-
             }
             else
             {

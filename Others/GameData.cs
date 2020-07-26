@@ -39,7 +39,7 @@ public class GameData
 
     private void AssignInitialValues()
     {
-        soundManager = Camera.main.GetComponent<SoundPlayer>();
+        soundManager = SoundPlayer.Instance;
         playerName = PlayerPrefs.GetString("playerName");
         playerName = (string.IsNullOrEmpty(playerName) || string.IsNullOrWhiteSpace(playerName)) ? "John Doe" : playerName;
     }

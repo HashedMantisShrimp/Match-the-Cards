@@ -35,7 +35,7 @@ public class Database
     static MongoClientSettings settings = new MongoClientSettings()
     {
         ConnectTimeout = timeOut,
-        ServerSelectionTimeout = TimeSpan.FromSeconds(1),
+        ServerSelectionTimeout = timeOut,
         MaxConnectionPoolSize = 10
     };
     
@@ -55,7 +55,7 @@ public class Database
         return instance;
     }
 
-    static MongoClient newClient = new MongoClient(remoteDB);
+    static MongoClient newClient = new MongoClient(localDB);
     #endregion
 
     //---------------------------------------------------------------------------------------------------

@@ -8,9 +8,12 @@ public class SoundPlayer : MonoBehaviour
     public Sound[] sounds;
     private AudioSource source;//Used to assign instances of other sources
     private AudioSource mainSource;
+    private static SoundPlayer instance;
+    private static GameObject soundManagerObject;
 
     void Awake()
     {
+        soundManagerObject = gameObject;
         DontDestroyOnLoad(gameObject);
     }
 
@@ -19,6 +22,18 @@ public class SoundPlayer : MonoBehaviour
         GameObject mainCam = gameObject;
         mainCam.AddComponent<AudioSource>();
         mainSource = mainCam.GetComponent<AudioSource>();
+    }
+
+    public static SoundPlayer Instance
+    {
+        get
+        {
+            if (instance == null)
+            {
+                instance = soundManagerObject.GetComponent<SoundPlayer>();
+            }
+            return instance;
+        }
     }
 
     #region PlaySoundClip Functions
@@ -55,19 +70,6 @@ public class SoundPlayer : MonoBehaviour
     }
     #endregion
 
-    public bool isSourcePlaying(string sourceName)//Checks if audioSource with 'sourceName' is playing a clip
-    {
-        source = FindSource(sourceName);
-
-        if (source.isPlaying)
-        {
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-
     #region Find Functions
 
     private AudioClip FindSound(string name)//Finds sound with title of 'name' on sounds array
@@ -97,6 +99,22 @@ public class SoundPlayer : MonoBehaviour
         else
         {
             return sourceItem.audioSource;
+        }
+    }
+    #endregion
+
+    #region Miscellaneous
+
+    public bool isSourcePlaying(string sourceName)//Checks if audioSource with 'sourceName' is playing a clip
+    {
+        source = FindSource(sourceName);
+
+        if (source.isPlaying)
+        {
+            return true;
+        }
+        else {
+            return false;
         }
     }
     #endregion

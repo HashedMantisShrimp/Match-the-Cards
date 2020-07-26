@@ -67,6 +67,7 @@ public class Begin : MonoBehaviour
     {
         if (Misc.IsStringValid(playerName.text))
         {
+            PlayerPrefs.SetString("playerName", playerName.text);
             SceneManager.LoadScene(1);
         }
         else
@@ -75,11 +76,6 @@ public class Begin : MonoBehaviour
             errorMessage.SetActive(true);
             StartCoroutine(DeactivateMsg(4f, errorMessage));
         }
-    }
-
-    private void OnDisable()
-    {
-        PlayerPrefs.SetString("playerName", playerName.text);
     }
 
     private IEnumerator DeactivateMsg(float waitTime, GameObject msg) //disables errorMessage after waitTime

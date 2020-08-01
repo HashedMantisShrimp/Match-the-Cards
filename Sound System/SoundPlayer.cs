@@ -38,7 +38,7 @@ public class SoundPlayer : MonoBehaviour
 
     #region PlaySoundClip Functions
 
-    public void PlaySoundClip(string soundName, bool loop)//Plays 'soundName' on 'mainSource' (usually the audio source attached to the camera)
+    public void PlaySoundClip(string soundName, bool loop)//Plays 'soundName' on 'mainSource' (usually this audio source is automatically assigned to gameObject)
     {
         mainSource.loop = loop == true ? true : false; 
         mainSource.time = 0;

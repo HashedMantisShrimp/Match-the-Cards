@@ -8,6 +8,8 @@ using UnityEngine;
 
 public class Database
 {
+    #region Variables
+
     internal static bool connectedToServer { get; private set; } = false; //TODO: If no use is found, delete it
     private const string dbName = SData.DB_NAME; //TODO: Substitute later with actual DotEnv files
     private const string dbUser = SData.DB_USER;
@@ -16,12 +18,17 @@ public class Database
     private const string dbLPort = SData.DB_LOCAL_PORT;
     private const string lbDocID = "lb00";
     private static string lbColl = "leaderboard";
+    private static string lbCollTest = "leaderboard_copy";//Back-up collection, used for testing purposes
     private static string gameStateColl = "gamestate";
     private static IMongoDatabase db;
     private static IMongoCollection<LeaderBoardSchema> lbCollection; 
     private static IMongoCollection<BsonDocument> gameStateCollection;
     private static string remoteDB = $"mongodb+srv://{dbUser}:{dbPass}@{dbCluster}.mongodb.net/test?retryWrites=true&w=majority";
     private static string localDB = $"mongodb://127.0.0.1:{dbLPort}";
+    private static TimeSpan timeOut = new TimeSpan(0,0,3);
+    #endregion
+
+    //---------------------------------------------------------------------------------------------------
 
     #region Init Functions
     static MongoClient newClient = new MongoClient(localDB);
@@ -41,32 +48,85 @@ public class Database
     }
     #endregion
 
-    #region LeaderBoard
-    internal static async Task SaveLeaderBoard(string playerListJSON)
+    //---------------------------------------------------------------------------------------------------
+
+    #region LeaderBoard Functions
+
+    internal static async Task SaveLeaderBoard(string playerListJSON)//Saves leaderboard data into db 
     {
-        var data = BsonDocument.Parse(playerListJSON);
+        try
+        {
+            var data = BsonDocument.Parse(playerListJSON);
 
-        var filter = Builders<LeaderBoardSchema>.Filter.Eq("_id", lbDocID);
-        var update = Builders<LeaderBoardSchema>.Update.Set("list", data);
+            var queryFilter = Builders<LeaderBoardSchema>.Filter.Eq("_id", lbDocID);
+            var queryUpdate = Builders<LeaderBoardSchema>.Update.Set("leaderBList", data.GetValue("leaderBList"));
+            var queryOptions = new UpdateOptions { IsUpsert = true };
 
-        var options = new UpdateOptions { IsUpsert = true };
+            UpdateResult result = await lbCollection.UpdateOneAsync(queryFilter, queryUpdate, queryOptions);
 
-        UpdateResult result = await lbCollection.UpdateOneAsync(filter, update, options);
-
-        Debug.Log($"<color=yellow> Operation {nameof(lbCollection.UpdateOneAsync)}()</color> returned result: {result}");
-        Debug.Log($"<color=yellow>{nameof(SaveLeaderBoard)}</color> called. {nameof(playerListJSON)} updated & saved.");
+            Debug.Log($"<color=yellow> Operation {nameof(lbCollection.UpdateOneAsync)}()</color> returned result: {result}");
+            Debug.Log($"<color=yellow>{nameof(SaveLeaderBoard)}</color> called. {nameof(playerListJSON)} updated & saved.");
+        }
+        catch (Exception e)
+        {
+            Misc.HandleException(e, GameData.GetExcDBSaveLeaderBoard());
+        }
     }
 
-    //Insert new features below
-
-    internal static async Task<string> LoadLeaderBoard()
+    internal static async Task<string> LoadLeaderBoardData()//Loads leaderboard data from db, returns empty string if error occurs or if collection is empty
     {
-        //Implement code to load leaderboard file
-        //Create Trello for Match The Cards, set a minimum scope for the project and a definite MVP to deploy
+        try
+        {
+            var JSONdata = string.Empty;
+
+            if (!await IsCollEmpty(lbCollection))
+            {
+                BsonDocument docFound = null;
+                var newProjection = Builders<LeaderBoardSchema>.Projection.Exclude(x=> x._id);
+                var filter = Builders<LeaderBoardSchema>.Filter.Eq("_id", lbDocID);
+                var options = new FindOptions<LeaderBoardSchema, BsonDocument>
+                {
+                    MaxAwaitTime = timeOut,
+                    Limit = 1,
+                    Projection = newProjection,
+                };
+
+                using (IAsyncCursor<BsonDocument> cursor = await lbCollection.FindAsync(filter, options))
+                {//TODO: adjust code for case where there is no lbDocID but there are other docs
+                    while (await cursor.MoveNextAsync())
+                    {
+                        IEnumerable<BsonDocument> batch = cursor.Current;
+
+                        foreach (BsonDocument document in batch)
+                        {
+                            docFound = document;
+                            Debug.Log($"<color=yellow>Document</color> found: {docFound}");
+                        }
+                    }
+                }
+                
+                JSONdata = docFound.ToJson();
+            }
+            else
+            {
+                Debug.Log($"<color=red>Collection {nameof(lbCollection)}</color> is empty.");
+            }
+            
+            return JSONdata;
+        }
+        catch (Exception e)
+        {
+            Misc.HandleException(e, GameData.GetExcDBLoadLeaderBoard());
+        }
+
+        Debug.Log($"<color=red>ERROR:</color> out of try-catch block, returning empty string for {nameof(LoadLeaderBoardData)}()");
         return string.Empty;
     }
-
     #endregion
+
+    //Insert Game State saving here
+
+    //---------------------------------------------------------------------------------------------------
 
     #region Miscellaneous
 
@@ -74,7 +134,7 @@ public class Database
     {
         try
         {
-            await GetDBNames(); //TODO: Implement a more efficient way to check connection
+            await GetDBNames(); //TODO: Implement a more efficient way to check connection, use server.ping() method
         }
         catch (Exception e)
         {
@@ -82,22 +142,53 @@ public class Database
             Debug.Log(e.Message);
         }
     }
-    
-    private static async Task<bool> IsDocumentPresent(string _id, IMongoCollection<BsonDocument> collection)
+
+    private static async Task<bool> IsCollEmpty(IMongoCollection<LeaderBoardSchema> collection)//Checks if there is at least one doc present in collection
+    {//TODO: Can this method be modified to check game state collection as well?
+        var docType = FilterDefinition<LeaderBoardSchema>.Empty;
+        var countOptions = new CountOptions { MaxTime = timeOut };
+        var collIsEmpty = true;
+        
+        if (await collection.CountDocumentsAsync(docType, countOptions) > 0)
+        {
+            Debug.Log($"<Color=blue>Attention</color> Collection {collection.GetType()} is NOT empty");
+            collIsEmpty = false;
+        }
+
+        Debug.Log($"<Color=blue>Attention</color> {nameof(IsCollEmpty)}() Returning {collIsEmpty}.");
+        return collIsEmpty;
+    }
+
+    private static async Task<bool> IsDocumentPresent(string _id, IMongoCollection<LeaderBoardSchema> collection)//TODO: Modify this to check for Game State docs
     {
-        var docType = FilterDefinition<BsonDocument>.Empty;
+        LeaderBoardSchema docFound = null;
+        var docType = FilterDefinition<LeaderBoardSchema>.Empty;
+        var countOptions = new CountOptions { MaxTime = timeOut};
+        var newProjection = Builders<LeaderBoardSchema>.Projection.Exclude(x => x.list);
+        var searchOptions = new FindOptions<LeaderBoardSchema> { Limit = 1, MaxAwaitTime = timeOut, Projection = newProjection };
+        var searchFilter = Builders<LeaderBoardSchema>.Filter.Eq("_id", _id);
 
-        var docIDFilter = new BsonDocument()
+
+        if (await collection.CountDocumentsAsync(docType, countOptions) > 0) 
         {
-            {"_id", _id }
-        };
+            
+            using (IAsyncCursor<LeaderBoardSchema> cursor = await collection.FindAsync(searchFilter, searchOptions))
+            {
+                while (await cursor.MoveNextAsync())
+                {
+                    IEnumerable<LeaderBoardSchema> batch = cursor.Current;
 
+                    foreach (LeaderBoardSchema document in batch)
+                    {
+                        docFound = document;
+                        Debug.Log($"isDocPresent: {document}");
+                    }
+                }
+            }
 
-        if (await collection.CountDocumentsAsync(docType) > 0)
-        {
-            var docfound = await collection.FindAsync(docIDFilter);
+            Debug.Log($"<Color=blue>Attention</color> docFound {docFound}");
 
-            return (docfound != null) ? true: false;
+            return (docFound != null) ? true: false;
         }
 
         Debug.Log($"<Color=red>Attention</color> Collection {collection.ToString()} is empty. Returning false.");

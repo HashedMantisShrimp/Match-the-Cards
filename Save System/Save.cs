@@ -11,10 +11,11 @@ public class Save : MonoBehaviour
     private string playerName;
     private string saveFileName;
     private string saveKey;
-    [SerializeField] GameData gameData;
+    GameData gameData;
 
     private void Start()
     {
+        gameData = GameData.GetInstance();
         saveKey = $"save{gameData.GetPlayerName()}";
     }
 
@@ -49,8 +50,12 @@ public class Save : MonoBehaviour
     }
     #endregion
 
+    //---------------------------------------------------------------------------------------------------
+
     internal async Task SaveData() //Saves acquired data into a file
     {
+        FileStream file = File.Create(Application.persistentDataPath + $"/{saveFileName}");//TODO: Revisit this change later, will it work the same for db?
+        //TODO: Consider instead, opening the file inside the try block and referencing an outside variable to it
         try
         {
             playerName = gameData.GetPlayerName();
@@ -60,34 +65,33 @@ public class Save : MonoBehaviour
 
             if (internetConnection)
             {
-
                 //Substitute with code to save data onto online db
 
                 BinaryFormatter bf = new BinaryFormatter();
-                FileStream file = File.Create(Application.persistentDataPath + $"/{saveFileName}");
                 PlayerPrefs.SetInt(saveKey, 1);
                 PlayerPrefs.Save();
 
                 bf.Serialize(file, data);
-                file.Close();
                 Debug.Log("Game Saved. With Internet connection");
             }
             else
             {
-                
+
                 BinaryFormatter bf = new BinaryFormatter();
-                FileStream file = File.Create(Application.persistentDataPath + $"/{saveFileName}");
                 PlayerPrefs.SetInt(saveKey, 1);
                 PlayerPrefs.Save();
 
                 bf.Serialize(file, data);
-                file.Close();
                 Debug.Log("Game Saved. Without Internet connection");
             }
         }
         catch (Exception e)
         {
-            Debug.Log($"<color=red>ATTENTION</color> Error found while saving game file: {e.Message}");
+            Misc.HandleException(e, gameData.GetExcSaveData());
+        }
+        finally
+        {
+            file.Close();
         }
     }
 
@@ -97,10 +101,10 @@ public class Save : MonoBehaviour
         {
             if (gameData.GetSaveDataPresent())
             {
-                if (string.IsNullOrEmpty(playerName) || string.IsNullOrWhiteSpace(playerName))
+                if (Misc.IsStringNullOr(playerName))
                     playerName = gameData.GetPlayerName();
 
-                if (string.IsNullOrEmpty(saveFileName) || string.IsNullOrWhiteSpace(saveFileName))
+                if (Misc.IsStringNullOr(saveFileName))
                     saveFileName = playerName + GameData.saveFormat;
 
                 PlayerPrefs.DeleteKey(saveKey);
@@ -115,9 +119,8 @@ public class Save : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.Log($"Exception was found while deleting file: {e.Message}");
+            Misc.HandleException(e, gameData.GetExcDeleteSave());
         }
-        
     }
 }
 

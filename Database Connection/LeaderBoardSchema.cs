@@ -1,9 +1,9 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-public struct LeaderBoardSchema
+public class LeaderBoardSchema
 {
-    [BsonId] string _id { get; set; }
+    [BsonId] public string _id { get; set; }
 
-    BsonDocument list { get; set; }
+    public BsonDocument list { get; set; }
 }

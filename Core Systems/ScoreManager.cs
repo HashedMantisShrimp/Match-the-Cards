@@ -102,6 +102,7 @@ public class ScoreManager : MonoBehaviour
 
     private void AssignFields()
     {
+        gameData = GameData.GetInstance();
 
         if (gameData.GetSaveDataPresent())
             savedData = GameData.saveData;

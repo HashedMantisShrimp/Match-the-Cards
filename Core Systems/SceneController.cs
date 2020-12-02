@@ -32,7 +32,6 @@ public class SceneController : MonoBehaviour
     [SerializeField] private GameObject congrats;
     [SerializeField] private MainCard originalCard;
     [SerializeField] private Sprite[] imgs;
-
     #endregion
 
     //---------------------------------------------------------------------------------------------------
@@ -93,6 +92,7 @@ public class SceneController : MonoBehaviour
 
     private void AssignFields()
     {
+        gameData = GameData.GetInstance();
         resetLeaderBoard = FindObjectOfType<ResetLeaderBoard>().gameObject;
         leaderBoard = FindObjectOfType<LeaderBoard>();
         timeText = transform.Find("Time Text").gameObject;
@@ -103,7 +103,6 @@ public class SceneController : MonoBehaviour
         SaveAndLoad = FindObjectOfType<Save>().gameObject;
 
         save = SaveAndLoad.GetComponent<Save>();
-        gameData = SaveAndLoad.GetComponent<GameData>();
         saveData = GameData.saveData;
         InitiateGameBoard();
     }   
